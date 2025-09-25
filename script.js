@@ -1,7 +1,7 @@
 
 // --- CONFIGURACIÓN ---
 // ¡IMPORTANTE! Reemplaza esta URL con la URL de tu función serverless una vez que la hayas desplegado.
-const BACKEND_API_URL = 'https://tu-sitio-en-netlify.netlify.app/api/score';
+const BACKEND_API_URL = 'https://creedme.netlify.app/.netlify/functions/score';
 
 // --- ELEMENTOS DEL DOM ---
 const questionElement = document.querySelector('.question-text');
