@@ -21,7 +21,7 @@ exports.handler = async function(event) {
         const { question, idealAnswer, playerAnswer } = JSON.parse(event.body);
 
         // Obtener el modelo de Gemini
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
         // Crear el "prompt" o instrucción para la IA
         const prompt = `
