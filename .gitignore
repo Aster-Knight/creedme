@@ -1,0 +1,10 @@
+# Dependencias de Node
+/node_modules
+
+# Archivos de entorno (buenas prácticas por si lo usas en el futuro)
+.env
+.env.local
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
