@@ -39,9 +39,7 @@ exports.handler = async function(event) {
 
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -51,14 +49,16 @@ exports.handler = async function(event) {
         }
 
         const geminiResponse = await response.json();
-        const rawText = geminiResponse.candidates.content.parts.text;
 
-        // --- ¡¡¡AQUÍ ESTÁ LA SOLUCIÓN!!! ---
+        // --- LÍNEA CORREGIDA ---
+        // Accedemos correctamente a los arrays usando [0]
+        const rawText = geminiResponse.candidates[0].content.parts[0].text;
+
         // Limpiamos la respuesta de Gemini para quitarle el Markdown
         const cleanedText = rawText
-            .replace("```json", "") // Quita el inicio del bloque de código
-            .replace("```", "")      // Quita el final del bloque de código
-            .trim();                 // Quita espacios en blanco al inicio o al final
+            .replace("```json", "")
+            .replace("```", "")
+            .trim();
 
         return {
             statusCode: 200,
@@ -66,7 +66,7 @@ exports.handler = async function(event) {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: cleanedText // Enviamos el JSON limpio al frontend
+            body: cleanedText 
         };
 
     } catch (error) {
@@ -76,4 +76,4 @@ exports.handler = async function(event) {
             body: JSON.stringify({ error: "Ocurrió un error al procesar la respuesta con la IA." })
         };
     }
-};a
+};
