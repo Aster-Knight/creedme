@@ -21,7 +21,7 @@ exports.handler = async function(event) {
         const { question, idealAnswer, playerAnswer } = JSON.parse(event.body);
 
         // Obtener el modelo de Gemini
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
         // Crear el "prompt" o instrucción para la IA
         const prompt = `
             Actúa como un juez experto en un concurso de conocimiento. Tu tarea es evaluar la respuesta de un jugador de manera justa y proporcionar un comentario útil.
