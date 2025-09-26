@@ -1,28 +1,23 @@
-// Importar el SDK de Google Generative AI
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+// Usaremos node-fetch para hacer una llamada HTTP directa, igual que en curl
+const fetch = require('node-fetch');
 
-// Obtener la clave de API desde las variables de entorno seguras de Netlify
-const geminiApiKey = process.env.GEMINI_API_KEY;
-if (!geminiApiKey) {
-    // Si la clave no está configurada, la función no puede operar
-    throw new Error("La variable de entorno GEMINI_API_KEY no está definida.");
-}
-const genAI = new GoogleGenerativeAI(geminiApiKey);
-
-// La función principal que se ejecuta cuando se llama a la API
 exports.handler = async function(event) {
-    // Solo permitir solicitudes POST
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Método no permitido' };
     }
 
     try {
-        // Extraer los datos enviados desde el juego (frontend)
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+        if (!geminiApiKey) {
+            throw new Error("La variable de entorno GEMINI_API_KEY no está definida.");
+        }
+
         const { question, idealAnswer, playerAnswer } = JSON.parse(event.body);
 
-        // Obtener el modelo de Gemini
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-        // Crear el "prompt" o instrucción para la IA
+        // 1. Construimos la URL exacta que funcionó en curl
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${geminiApiKey}`;
+
+        // 2. Creamos el prompt que le enviamos a Gemini
         const prompt = `
             Actúa como un juez experto en un concurso de conocimiento. Tu tarea es evaluar la respuesta de un jugador de manera justa y proporcionar un comentario útil.
             
@@ -34,21 +29,46 @@ exports.handler = async function(event) {
             {"score": X, "feedback": "tu explicación"}
 
             - "score" debe ser un número entero entre 0 (totalmente incorrecto) y 10 (perfecto).
-            - "feedback" debe ser un texto breve y claro explicando por qué se dio esa puntuación. Considera errores de tipeo menores, respuestas parcialmente correctas o respuestas conceptualmente válidas pero diferentes a la ideal.
+            - "feedback" debe ser un texto breve y claro explicando por qué se dio esa puntuación.
         `;
 
-        // Enviar el prompt a Gemini
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        
-        // Devolver la respuesta JSON de Gemini al frontend
+        // 3. Creamos el cuerpo de la petición (payload), igual que en curl
+        const payload = {
+            contents: [{
+                parts: [{
+                    text: prompt
+                }]
+            }]
+        };
+
+        // 4. Hacemos la llamada con fetch, replicando los parámetros de curl
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            // Si la respuesta no es exitosa, lanzamos un error para verlo en los logs
+            const errorBody = await response.text();
+            throw new Error(`La API de Gemini respondió con error: ${response.status} ${errorBody}`);
+        }
+
+        const geminiResponse = await response.json();
+
+        // 5. Extraemos el texto de la respuesta, que debería ser el JSON que pedimos
+        const jsonText = geminiResponse.candidates[0].content.parts[0].text;
+
+        // 6. Devolvemos ese JSON directamente al frontend
         return {
             statusCode: 200,
             headers: {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*' // Permite llamadas desde cualquier origen (importante para GitHub Pages)
+                'Access-Control-Allow-Origin': '*'
             },
-            body: responseText
+            body: jsonText 
         };
 
     } catch (error) {
