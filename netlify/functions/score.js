@@ -1,4 +1,3 @@
-// Usaremos node-fetch para hacer una llamada HTTP directa, igual que en curl
 const fetch = require('node-fetch');
 
 exports.handler = async function(event) {
@@ -14,10 +13,8 @@ exports.handler = async function(event) {
 
         const { question, idealAnswer, playerAnswer } = JSON.parse(event.body);
 
-        // 1. Construimos la URL exacta que funcionó en curl
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${geminiApiKey}`;
 
-        // 2. Creamos el prompt que le enviamos a Gemini
         const prompt = `
             Actúa como un juez experto en un concurso de conocimiento. Tu tarea es evaluar la respuesta de un jugador de manera justa y proporcionar un comentario útil.
             
@@ -32,7 +29,6 @@ exports.handler = async function(event) {
             - "feedback" debe ser un texto breve y claro explicando por qué se dio esa puntuación.
         `;
 
-        // 3. Creamos el cuerpo de la petición (payload), igual que en curl
         const payload = {
             contents: [{
                 parts: [{
@@ -41,7 +37,6 @@ exports.handler = async function(event) {
             }]
         };
 
-        // 4. Hacemos la llamada con fetch, replicando los parámetros de curl
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -51,24 +46,27 @@ exports.handler = async function(event) {
         });
 
         if (!response.ok) {
-            // Si la respuesta no es exitosa, lanzamos un error para verlo en los logs
             const errorBody = await response.text();
             throw new Error(`La API de Gemini respondió con error: ${response.status} ${errorBody}`);
         }
 
         const geminiResponse = await response.json();
+        const rawText = geminiResponse.candidates.content.parts.text;
 
-        // 5. Extraemos el texto de la respuesta, que debería ser el JSON que pedimos
-        const jsonText = geminiResponse.candidates[0].content.parts[0].text;
+        // --- ¡¡¡AQUÍ ESTÁ LA SOLUCIÓN!!! ---
+        // Limpiamos la respuesta de Gemini para quitarle el Markdown
+        const cleanedText = rawText
+            .replace("```json", "") // Quita el inicio del bloque de código
+            .replace("```", "")      // Quita el final del bloque de código
+            .trim();                 // Quita espacios en blanco al inicio o al final
 
-        // 6. Devolvemos ese JSON directamente al frontend
         return {
             statusCode: 200,
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: jsonText 
+            body: cleanedText // Enviamos el JSON limpio al frontend
         };
 
     } catch (error) {
@@ -78,4 +76,4 @@ exports.handler = async function(event) {
             body: JSON.stringify({ error: "Ocurrió un error al procesar la respuesta con la IA." })
         };
     }
-};
+};a
