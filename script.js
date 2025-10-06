@@ -63,6 +63,8 @@ window.onload = () => {
 async function fetchGameState() {
     showLoading();
     try {
+        // --- AÑADE ESTA LÍNEA DE DEPURACIÓN ---
+        console.log("Enviando petición a getSetState con el siguiente body:", JSON.stringify({ userId: currentUserId }));
         const response = await fetch('/.netlify/functions/getSetState', {
             method: 'POST',
             body: JSON.stringify({ userId: currentUserId })
