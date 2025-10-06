@@ -151,3 +151,33 @@ button {
     padding-top: 20px;
     border-top: 1px solid #ddd;
 }
+
+/* style.css (AÑADIR ESTO AL FINAL) */
+
+.set-result-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.set-result-card h3 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.result-list {
+    list-style: none;
+    padding: 0;
+}
+
+.result-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.result-list li:last-child {
+    border-bottom: none;
+}

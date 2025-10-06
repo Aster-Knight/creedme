@@ -27,6 +27,10 @@ const modalFeedback = document.getElementById('modal-feedback');
 const modalSubmitBtn = document.getElementById('modal-submit-btn');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 
+// --- Get Resultados del Set ---
+const resultsSection = document.getElementById('results-section');
+const setsList = document.getElementById('sets-list');
+
 // --- Estado del Juego ---
 let gameState = {};
 let currentUser = null; 
@@ -66,6 +70,7 @@ auth.onAuthStateChanged(user => {
         });
 
         fetchGameState();
+        fetchAndRenderResults(); // <-- AÑADE ESTA LÍNEA
     } else {
         // --- ESTADO: Usuario No Logueado ---
         currentUser = null;
@@ -78,6 +83,7 @@ auth.onAuthStateChanged(user => {
         userInfo.innerHTML = '';
         authContainer.classList.remove('hidden');
         mainGame.classList.add('hidden');
+        resultsSection.classList.add('hidden'); // Ocultamos los resultados al hacer logout
     }
 });
 
@@ -139,6 +145,48 @@ async function fetchGameState() {
         hideLoading();
     }
 }
+
+
+async function fetchAndRenderResults() {
+    if (!currentUser) return;
+
+    try {
+        const response = await fetch('/.netlify/functions/getResults', {
+            method: 'POST',
+            body: JSON.stringify({ userId: currentUser.uid })
+        });
+        if (!response.ok) throw new Error("No se pudieron cargar los resultados.");
+
+        const closedSets = await response.json();
+
+        if (closedSets.length > 0) {
+            setsList.innerHTML = ''; // Limpiar la lista
+            closedSets.forEach(set => {
+                const setResultCard = document.createElement('div');
+                setResultCard.className = 'set-result-card';
+
+                let resultsHTML = set.results.map(res => `
+                    <li>
+                        <strong>Pregunta #${res.questionOrder}:</strong> Quedaste en el puesto <strong>#${res.yourRanking}</strong>. 
+                        <br>
+                        <small>El público secreto era: <em>${res.secretAudience}</em></small>
+                    </li>
+                `).join('');
+
+                setResultCard.innerHTML = `
+                    <h3>${set.setName}</h3>
+                    <ul class="result-list">${resultsHTML}</ul>
+                `;
+                setsList.appendChild(setResultCard);
+            });
+            resultsSection.classList.remove('hidden'); // Mostrar la sección de resultados
+        }
+
+    } catch (error) {
+        console.error("Error al renderizar los resultados:", error);
+    }
+}
+
 
 function renderGame() {
     questionsGrid.innerHTML = '';
