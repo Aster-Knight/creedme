@@ -32,26 +32,49 @@ let gameState = {};
 let currentUser = null; 
 let currentQuestionInModal = null;
 
-// --- CENTRO DE CONTROL DE LA APLICACIÓN ---
-auth.onAuthStateChanged(async user => {
+// --- CENTRO DE CONTROL DE LA APLICACIÓN (VERSIÓN MEJORADA) ---
+let userListener = null; // Variable para guardar nuestra "suscripción" y poder cancelarla al hacer logout
+
+auth.onAuthStateChanged(user => {
     if (user) {
+        // --- ESTADO: Usuario Logueado ---
         currentUser = user;
+        
         authContainer.classList.add('hidden');
         mainGame.classList.remove('hidden');
+        
+        // ¡NUEVA LÓGICA CON LISTENER EN TIEMPO REAL!
+        // Nos "suscribimos" al documento del usuario.
+        // La función dentro de onSnapshot se ejecutará cada vez que los datos de este usuario cambien.
+        const userRef = db.collection('users').doc(user.uid);
+        userListener = userRef.onSnapshot(userDoc => {
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                // Actualizamos la UI con los datos más recientes
+                userInfo.innerHTML = `
+                    <span>Jugador: <b>${userData.username}</b></span>
+                    <span>Rating: <b id="elo-rating">${Math.round(userData.eloRating)}</b></span>
+                    <button id="logout-btn">Cerrar Sesión</button>
+                `;
+                // Añadimos el evento al botón de logout cada vez que se re-renderiza
+                document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+            } else {
+                // Esto puede pasar si el documento del usuario se borra por alguna razón
+                console.error("No se encontró el documento del usuario.");
+                auth.signOut(); // Forzamos el logout para evitar errores
+            }
+        });
 
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            userInfo.innerHTML = `
-                <span>Jugador: <b>${userData.username}</b></span>
-                <span>Rating: <b id="elo-rating">${userData.eloRating}</b></span>
-                <button id="logout-btn">Cerrar Sesión</button>
-            `;
-            document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-        }
         fetchGameState();
     } else {
+        // --- ESTADO: Usuario No Logueado ---
         currentUser = null;
+        
+        // Si teníamos una "suscripción" activa, la cancelamos para ahorrar recursos.
+        if (userListener) {
+            userListener(); // Llama a la función de cancelación que nos da onSnapshot
+        }
+        
         userInfo.innerHTML = '';
         authContainer.classList.remove('hidden');
         mainGame.classList.add('hidden');
