@@ -181,3 +181,52 @@ button {
 .result-list li:last-child {
     border-bottom: none;
 }
+
+/* style.css (AÑADIR AL FINAL) */
+
+#global-leaderboard-section {
+    margin-top: 40px;
+}
+
+#global-leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#global-leaderboard-table th, #global-leaderboard-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+#global-leaderboard-table th {
+    background-color: #f8f9fa;
+}
+
+#global-leaderboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Hacer clicables los resultados */
+.result-list li {
+    cursor: pointer;
+}
+.result-list li a {
+    color: #3498db;
+    text-decoration: underline;
+    font-size: 0.9em;
+}
+
+/* Modal grande para rankings */
+.modal-lg {
+    max-width: 800px;
+}
+
+#leaderboard-modal-body ol {
+    padding-left: 20px;
+}
+#leaderboard-modal-body li {
+    margin-bottom: 10px;
+}

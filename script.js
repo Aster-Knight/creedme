@@ -1,4 +1,9 @@
 // script.js
+const globalLeaderboardSection = document.getElementById('global-leaderboard-section');
+const globalLeaderboardBody = document.getElementById('global-leaderboard-body');
+const leaderboardModal = document.getElementById('leaderboard-modal');
+const leaderboardModalBody = document.getElementById('leaderboard-modal-body');
+const leaderboardCloseBtn = document.getElementById('leaderboard-close-btn');
 
 // --- Elementos del DOM (Autenticación) ---
 const authContainer = document.getElementById('auth-container');
@@ -70,7 +75,8 @@ auth.onAuthStateChanged(user => {
         });
 
         fetchGameState();
-        fetchAndRenderResults(); // <-- AÑADE ESTA LÍNEA
+        fetchAndRenderResults();
+        fetchAndRenderGlobalLeaderboard();
     } else {
         // --- ESTADO: Usuario No Logueado ---
         currentUser = null;
@@ -83,7 +89,8 @@ auth.onAuthStateChanged(user => {
         userInfo.innerHTML = '';
         authContainer.classList.remove('hidden');
         mainGame.classList.add('hidden');
-        resultsSection.classList.add('hidden'); // Ocultamos los resultados al hacer logout
+        resultsSection.classList.add('hidden');
+        globalLeaderboardSection.classList.add('hidden');
     }
 });
 
@@ -165,21 +172,28 @@ async function fetchAndRenderResults() {
                 const setResultCard = document.createElement('div');
                 setResultCard.className = 'set-result-card';
 
+        // Modificamos el .map para añadir el evento onclick
                 let resultsHTML = set.results.map(res => `
-                    <li>
+                    <li data-question-id="${res.questionId}" data-question-text="Pregunta #${res.questionOrder}">
                         <strong>Pregunta #${res.questionOrder}:</strong> Quedaste en el puesto <strong>#${res.yourRanking}</strong>. 
                         <br>
-                        <small>El público secreto era: <em>${res.secretAudience}</em></small>
+                        <small>El público secreto era: <em>${res.secretAudience}</em> <a>(Ver ranking completo)</a></small>
                     </li>
                 `).join('');
 
-                setResultCard.innerHTML = `
-                    <h3>${set.setName}</h3>
-                    <ul class="result-list">${resultsHTML}</ul>
-                `;
+                setResultCard.innerHTML = `<h3>${set.setName}</h3><ul class="result-list">${resultsHTML}</ul>`;
                 setsList.appendChild(setResultCard);
+
+                // Añadimos los event listeners a los nuevos elementos 'li'
+                setResultCard.querySelectorAll('.result-list li').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const qId = item.getAttribute('data-question-id');
+                        const qText = item.getAttribute('data-question-text');
+                        showQuestionLeaderboard(qId, qText);
+                    });
+                });
             });
-            resultsSection.classList.remove('hidden'); // Mostrar la sección de resultados
+            resultsSection.classList.remove('hidden');
         }
 
     } catch (error) {
@@ -288,3 +302,55 @@ function showError(message) {
     loadingSpinner.classList.add('hidden');
     questionsGrid.classList.add('hidden');
 }
+
+// script.js (pegar estas nuevas funciones)
+
+async function fetchAndRenderGlobalLeaderboard() {
+    try {
+        const response = await fetch('/.netlify/functions/getLeaderboards', {
+            method: 'POST',
+            body: JSON.stringify({ type: 'global' })
+        });
+        if (!response.ok) return;
+
+        const leaderboard = await response.json();
+        globalLeaderboardBody.innerHTML = ''; // Limpiar
+        leaderboard.forEach((player, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>#${index + 1}</td>
+                <td>${player.username}</td>
+                <td>${player.eloRating}</td>
+            `;
+            globalLeaderboardBody.appendChild(row);
+        });
+        globalLeaderboardSection.classList.remove('hidden');
+    } catch (error) {
+        console.error("Error al cargar el ranking global:", error);
+    }
+}
+
+async function showQuestionLeaderboard(questionId, questionText) {
+    leaderboardModalBody.innerHTML = '<p>Cargando ranking...</p>';
+    leaderboardModal.classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/.netlify/functions/getLeaderboards', {
+            method: 'POST',
+            body: JSON.stringify({ type: 'question', questionId })
+        });
+        if (!response.ok) throw new Error('No se pudo cargar el ranking.');
+        
+        const leaderboard = await response.json();
+        let leaderboardHTML = `<h4>${questionText}</h4><ol>`;
+        leaderboard.forEach(entry => {
+            leaderboardHTML += `<li><strong>${entry.username}:</strong> "${entry.responseText}"</li>`;
+        });
+        leaderboardHTML += '</ol>';
+        leaderboardModalBody.innerHTML = leaderboardHTML;
+    } catch (error) {
+        leaderboardModalBody.innerHTML = `<p>${error.message}</p>`;
+    }
+}
+
+leaderboardCloseBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));

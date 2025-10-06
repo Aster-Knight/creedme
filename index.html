@@ -35,6 +35,22 @@
         </div>
     </section>
 
+    <section id="global-leaderboard-section" class="hidden">
+        <h2>Ranking Global de Jugadores</h2>
+        <table id="global-leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Puesto</th>
+                    <th>Jugador</th>
+                    <th>Rating Elo</th>
+                </tr>
+            </thead>
+            <tbody id="global-leaderboard-body">
+                <!-- El ranking se generará aquí -->
+            </tbody>
+        </table>
+    </section>
+
     <!-- Modal para responder preguntas (¡AQUÍ ESTABA EL ERROR!) -->
     <div id="response-modal" class="modal-overlay hidden">
         <div class="modal-content">
@@ -59,6 +75,16 @@
                 <button id="login-btn">Iniciar Sesión</button>
                 <button id="register-btn">Registrarse</button>
                 <button id="auth-close-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-lg">
+            <h3>Ranking de la Pregunta</h3>
+            <div id="leaderboard-modal-body"></div>
+            <div class="modal-actions">
+                <button id="leaderboard-close-btn">Cerrar</button>
             </div>
         </div>
     </div>
