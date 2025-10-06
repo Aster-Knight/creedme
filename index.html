@@ -3,25 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Preguntas con IA</title>
+    <title>Tenedme. Creedme. - Simulador Político</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>Juego de Preguntas Inteligente</h1>
-        <div id="question-area">
-            <p class="question-text">Cargando pregunta...</p>
+    <header>
+        <h1>Tenedme. Creedme.</h1>
+        <div id="user-info">
+            <!-- Contenido dinámico -->
         </div>
-        <div id="answer-area">
-            <input type="text" id="answer-input" placeholder="Escribe tu respuesta aquí...">
-            <button id="submit-btn" onclick="submitAnswer()">Enviar Respuesta</button>
+    </header>
+
+    <div id="auth-container">
+        <p>Por favor, inicia sesión o regístrate para participar.</p>
+        <button id="show-login-btn">Iniciar Sesión / Registrarse</button>
+    </div>
+
+    <main class="hidden">
+        <h2 id="set-name">Cargando set de preguntas...</h2>
+        <div id="questions-grid"></div>
+        <div id="loading-spinner" class="hidden">Cargando...</div>
+        <div id="error-message" class="hidden"></div>
+    </main>
+
+    <!-- NUEVA SECCIÓN PARA RESULTADOS -->
+    <section id="results-section" class="hidden">
+        <h2>Resultados de Sets Anteriores</h2>
+        <div id="sets-list">
+            <!-- Aquí generaremos la lista de sets cerrados -->
         </div>
-        <div id="result-area">
-            <!-- Aquí mostraremos el resultado de la IA -->
+    </section>
+
+    <section id="global-leaderboard-section" class="hidden">
+        <h2>Ranking Global de Jugadores</h2>
+        <table id="global-leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Puesto</th>
+                    <th>Jugador</th>
+                    <th>Rating Elo</th>
+                </tr>
+            </thead>
+            <tbody id="global-leaderboard-body">
+                <!-- El ranking se generará aquí -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Modal para responder preguntas (¡AQUÍ ESTABA EL ERROR!) -->
+    <div id="response-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-question-text"></h3>
+            <textarea id="modal-textarea" placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" maxlength="280"></textarea>
+            <div id="modal-feedback" class="hidden"></div>
+            <div class="modal-actions">
+                <button id="modal-submit-btn">Enviar Respuesta</button>
+                <button id="modal-close-btn">Cerrar</button>
+            </div>
         </div>
     </div>
 
+    <!-- Modal de Autenticación -->
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Acceso de Jugador</h3>
+            <input type="email" id="auth-email" placeholder="Correo electrónico">
+            <input type="password" id="auth-password" placeholder="Contraseña">
+            <p id="auth-error" class="hidden"></p>
+            <div class="modal-actions">
+                <button id="login-btn">Iniciar Sesión</button>
+                <button id="register-btn">Registrarse</button>
+                <button id="auth-close-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-lg">
+            <h3>Ranking de la Pregunta</h3>
+            <div id="leaderboard-modal-body"></div>
+            <div class="modal-actions">
+                <button id="leaderboard-close-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SDKs de Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- Nuestro código -->
+    <script src="firebase-init.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
