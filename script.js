@@ -19,24 +19,40 @@ let gameState = {};
 let currentUserId = null; // Lo obtendremos de Firebase Auth
 let currentQuestionInModal = null;
 
-// --- Función Principal ---
+// --- Funcion Principal ---
 window.onload = () => {
     // Escucha los cambios de autenticación de Firebase
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Usuario ha iniciado sesión
+            // --- Caso 1: Usuario ha iniciado sesión ---
+            console.log("Usuario autenticado:", user.uid);
             currentUserId = user.uid;
+            
             // TODO: Obtener y mostrar nombre de usuario y elo de Firestore
             document.getElementById('username').textContent = user.email; // Placeholder
+            
+            // Llamamos a la función SOLO si tenemos un usuario válido
             fetchGameState();
+
         } else {
-            // Usuario no ha iniciado sesión
-            // TODO: Redirigir a una página de login.
-            console.log("No hay usuario logueado. Redirigiendo a login...");
-            // Por ahora, para probar, usaremos un ID de prueba.
-            // ¡¡¡RECUERDA QUITAR ESTO!!!
-            currentUserId = "sVkuMhYfxNSOibWuDHQR"; // ID real de Firestore para probar
+            // --- Caso 2: Usuario no ha iniciado sesión ---
+            console.log("No hay usuario logueado.");
+            
+            // Por ahora, para poder probar sin un sistema de login completo,
+            // vamos a simular un inicio de sesión con un usuario de prueba.
+            // **IMPORTANTE**: Asegúrate de que este ID existe en tu colección 'users' de Firestore.
+            const testUserId = "sVkuMhYfxNSOibWuDHQR";
+
+            if (testUserId.startsWith("PEGA_AQUI")) {
+                 showError("Error de configuración: Debes añadir un ID de usuario de prueba en script.js");
+                 return;
+            }
+            
+            console.log("Usando usuario de prueba:", testUserId);
+            currentUserId = testUserId;
             document.getElementById('username').textContent = "Usuario de Prueba";
+            
+            // Llamamos a la función con el ID de prueba
             fetchGameState();
         }
     });
