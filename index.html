@@ -3,30 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Preguntas con IA</title>
+    <title>CreedMe</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>Juego de Preguntas Inteligente</h1>
-        <div id="question-area">
-            <p class="question-text">Cargando pregunta...</p>
+    <header>
+        <h1>CreedMe</h1>
+        <div id="user-info">
+            <span>Jugador: <b id="username">Cargando...</b></span>
+            <span>Rating: <b id="elo-rating">...</b></span>
         </div>
-        <div id="answer-area">
-            <input type="text" id="answer-input" placeholder="Escribe tu respuesta aquí...">
-            <button id="submit-btn" onclick="submitAnswer()">Enviar Respuesta</button>
+    </header>
+
+    <main>
+        <h2 id="set-name">Cargando set de preguntas...</h2>
+        <div id="questions-grid">
+            <!-- Las tarjetas de las preguntas se generarán aquí con JavaScript -->
         </div>
-        <div id="result-area">
-            <!-- Aquí mostraremos el resultado de la IA -->
+        <div id="loading-spinner" class="hidden">Cargando...</div>
+        <div id="error-message" class="hidden"></div>
+    </main>
+
+    <!-- Modal para responder preguntas (inicialmente oculto) -->
+    <div id="response-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-question-text"></h3>
+            <textarea id="modal-textarea" placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" maxlength="280"></textarea>
+            <div id="modal-feedback" class="hidden"></div>
+            <div class="modal-actions">
+                <button id="modal-submit-btn">Enviar Respuesta</button>
+                <button id="modal-close-btn">Cerrar</button>
+            </div>
         </div>
     </div>
-<!-- SDK de Firebase -->
+
+    <!-- SDK de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Nuestros codigos -->
+    <!-- Nuestro código -->
     <script src="firebase-init.js"></script>
     <script src="script.js"></script>
 </body>

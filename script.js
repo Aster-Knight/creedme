@@ -1,107 +1,146 @@
+// script.js
 
-// --- CONFIGURACIÓN ---
-const BACKEND_API_URL = 'https://creedme.netlify.app/.netlify/functions/score';
+// --- Elementos del DOM ---
+const questionsGrid = document.getElementById('questions-grid');
+const setNameElement = document.getElementById('set-name');
+const loadingSpinner = document.getElementById('loading-spinner');
+const errorMessage = document.getElementById('error-message');
 
-// --- ELEMENTOS DEL DOM ---
-const questionElement = document.querySelector('.question-text');
-const answerInput = document.getElementById('answer-input');
-const submitButton = document.getElementById('submit-btn');
-const resultArea = document.getElementById('result-area');
+// --- Elementos del Modal ---
+const modal = document.getElementById('response-modal');
+const modalQuestionText = document.getElementById('modal-question-text');
+const modalTextarea = document.getElementById('modal-textarea');
+const modalFeedback = document.getElementById('modal-feedback');
+const modalSubmitBtn = document.getElementById('modal-submit-btn');
+const modalCloseBtn = document.getElementById('modal-close-btn');
 
-// --- DATOS DEL JUEGO ---
-// Puedes ampliar esta lista con más preguntas y sus respuestas ideales.
-const questions = [
-    {
-        text: "¿Qué planeta es conocido como el 'Planeta Rojo'?",
-        idealAnswer: "Marte"
-    },
-    {
-        text: "¿Quién escribió 'Don Quijote de la Mancha'?",
-        idealAnswer: "Miguel de Cervantes"
-    },
-    {
-        text: "¿Cuál es el río más largo del mundo?",
-        idealAnswer: "El río Nilo o el río Amazonas (ambas son respuestas debatidas y válidas)"
-    }
-];
-let currentQuestionIndex = 0;
+// --- Estado del Juego ---
+let gameState = {};
+let currentUserId = null; // Lo obtendremos de Firebase Auth
 
-// --- FUNCIONES DEL JUEGO ---
+// --- Función Principal ---
+window.onload = () => {
+    // Escucha los cambios de autenticación de Firebase
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // Usuario ha iniciado sesión
+            currentUserId = user.uid;
+            // TODO: Obtener y mostrar nombre de usuario y elo de Firestore
+            document.getElementById('username').textContent = user.email; // Placeholder
+            fetchGameState();
+        } else {
+            // Usuario no ha iniciado sesión
+            // TODO: Redirigir a una página de login.
+            console.log("No hay usuario logueado. Redirigiendo a login...");
+            // Por ahora, para probar, usaremos un ID de prueba.
+            // ¡¡¡RECUERDA QUITAR ESTO!!!
+            currentUserId = "sVkuMhYfxNSOibWuDHQR"; // ID real de Firestore para probar
+            document.getElementById('username').textContent = "Usuario de Prueba";
+            fetchGameState();
+        }
+    });
+};
 
-// Función para mostrar la pregunta actual
-function displayQuestion() {
-    questionElement.textContent = questions[currentQuestionIndex].text;
-    answerInput.value = '';
-    resultArea.innerHTML = '';
-    submitButton.disabled = false;
-    answerInput.disabled = false;
-}
+// --- Funciones de Lógica ---
 
-// Función para enviar la respuesta al backend
-async function submitAnswer() {
-    const playerAnswer = answerInput.value;
-    if (!playerAnswer) {
-        alert("Por favor, escribe una respuesta.");
-        return;
-    }
-
-    // Deshabilitar botón y mostrar estado de carga
-    submitButton.disabled = true;
-    answerInput.disabled = true;
-    resultArea.innerHTML = '<p class="loading">La IA está evaluando tu respuesta</p>';
-
-    const currentQuestion = questions[currentQuestionIndex];
-
+async function fetchGameState() {
+    showLoading();
     try {
-        const response = await fetch(BACKEND_API_URL, {
+        const response = await fetch('/.netlify/functions/getSetState', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                question: currentQuestion.text,
-                idealAnswer: currentQuestion.idealAnswer,
-                playerAnswer: playerAnswer
-            })
+            body: JSON.stringify({ userId: currentUserId })
         });
 
         if (!response.ok) {
             throw new Error(`Error del servidor: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        displayResult(data);
-
+        gameState = await response.json();
+        renderGame();
     } catch (error) {
-        resultArea.innerHTML = `<p style="color: red;">Error: No se pudo contactar al servicio de puntuación. Inténtalo de nuevo más tarde.</p>`;
-        console.error("Error al enviar la respuesta:", error);
-        submitButton.disabled = false;
-        answerInput.disabled = false;
+        showError("No se pudo cargar el estado del juego. Inténtalo de nuevo más tarde.");
+        console.error("Error al obtener el estado del juego:", error);
+    } finally {
+        hideLoading();
     }
 }
 
-// Función para mostrar el resultado devuelto por la IA
-function displayResult(data) {
-    resultArea.innerHTML = `
-        <h3>Resultado de la IA:</h3>
-        <p><strong>Puntuación:</strong> ${data.score} / 10</p>
-        <p><strong>Comentario:</strong> ${data.feedback}</p>
-    `;
+function renderGame() {
+    // Limpiamos la cuadrícula antes de renderizar
+    questionsGrid.innerHTML = '';
+    setNameElement.textContent = gameState.setName;
 
-    // Prepara la siguiente pregunta o finaliza el juego
-    currentQuestionIndex++;
-    if (currentQuestionIndex < questions.length) {
-        submitButton.textContent = 'Siguiente Pregunta';
-        submitButton.disabled = false;
-        submitButton.onclick = () => {
-            displayQuestion();
-            submitButton.textContent = 'Enviar Respuesta';
-            submitButton.onclick = submitAnswer;
-        };
+    gameState.questions.forEach(q => {
+        const card = document.createElement('div');
+        card.classList.add('question-card');
+        
+        const title = document.createElement('h4');
+        title.textContent = `Pregunta #${q.order}`;
+        
+        const status = document.createElement('p');
+
+        if (q.hasResponded) {
+            card.classList.add('answered');
+            status.textContent = "Ya has respondido.";
+        } else {
+            status.textContent = "Pendiente de respuesta.";
+        }
+        
+        card.appendChild(title);
+        card.appendChild(status);
+
+        // Añadimos el evento para abrir el modal al hacer clic
+        card.addEventListener('click', () => openResponseModal(q));
+        
+        questionsGrid.appendChild(card);
+    });
+}
+
+function openResponseModal(question) {
+    modalQuestionText.textContent = question.questionText;
+    modalTextarea.value = question.responseText || '';
+    
+    // Si ya ha respondido, mostramos su feedback y deshabilitamos la edición
+    if (question.hasResponded) {
+        modalFeedback.textContent = `Reacción del público: "${question.geminiFeedback}"`;
+        modalFeedback.classList.remove('hidden');
+        modalTextarea.disabled = true;
+        modalSubmitBtn.classList.add('hidden');
     } else {
-        questionElement.textContent = "¡Juego terminado!";
-        submitButton.style.display = 'none';
-        answerInput.style.display = 'none';
+        modalFeedback.classList.add('hidden');
+        modalTextarea.disabled = false;
+        modalSubmitBtn.classList.remove('hidden');
     }
+
+    modal.classList.remove('hidden');
 }
 
-// Iniciar el juego al cargar la página
-window.onload = displayQuestion;
+// Event listener para cerrar el modal
+modalCloseBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+});
+
+// TODO: Añadir lógica al botón de enviar respuesta (lo haremos en el siguiente paso)
+modalSubmitBtn.addEventListener('click', () => {
+    alert("La lógica para enviar la respuesta se implementará en el siguiente paso.");
+});
+
+
+// --- Funciones de UI ---
+function showLoading() {
+    loadingSpinner.classList.remove('hidden');
+    errorMessage.classList.add('hidden');
+    questionsGrid.classList.add('hidden');
+}
+
+function hideLoading() {
+    loadingSpinner.classList.add('hidden');
+    questionsGrid.classList.remove('hidden');
+}
+
+function showError(message) {
+    errorMessage.textContent = message;
+    errorMessage.classList.remove('hidden');
+    loadingSpinner.classList.add('hidden');
+    questionsGrid.classList.add('hidden');
+}
