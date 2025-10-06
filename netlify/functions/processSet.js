@@ -132,3 +132,68 @@ exports.handler = async function(event) {
     return { statusCode: 500, body: 'Error interno del servidor al procesar el set.' };
   }
 };
+
+// processSet.js (PEGAR ESTO AL FINAL DEL BLOQUE 'try')
+
+// 8. CREAR NUEVO SET: Hacemos que el juego continúe automáticamente.
+console.log("Creando el siguiente set...");
+
+// Lista de posibles públicos. ¡Puedes ampliarla!
+const possibleAudiences = ["Ecologistas", "Empresarios tecnológicos", "Sindicalistas", "Conservadores fiscales", "Jubilados", "Jóvenes universitarios"];
+
+// Barajamos la lista para elegir 3 públicos únicos al azar
+const shuffledAudiences = possibleAudiences.sort(() => 0.5 - Math.random());
+const nextAudiences = [shuffledAudiences[0], shuffledAudiences[1], shuffledAudiences[2]];
+
+// Lista de posibles preguntas. ¡Puedes ampliarla!
+const possibleQuestions = [
+    "¿Cuál es la reforma más urgente para el sistema educativo?",
+    "¿Cómo debería el gobierno abordar la crisis de la vivienda?",
+    "¿Qué papel debe jugar la energía nuclear en nuestro futuro energético?",
+    "¿Son los impuestos actuales demasiado altos o demasiado bajos?",
+    "¿Cómo equilibramos la privacidad personal con la seguridad nacional?",
+    "¿Cuál es la mejor estrategia para fomentar la innovación en el país?",
+    "¿Debería ser la sanidad un servicio público o privado?",
+    "¿Qué medida propondría para combatir el cambio climático?",
+    "¿Cómo podemos mejorar la integración de los inmigrantes?",
+    "¿Es necesario reformar el sistema de pensiones?",
+    "¿Qué se debe hacer para reducir la delincuencia?",
+    "¿Cuál es su postura sobre la regulación de la inteligencia artificial?"
+];
+
+// Barajamos las preguntas para elegir 9 únicas al azar
+const shuffledQuestions = possibleQuestions.sort(() => 0.5 - Math.random());
+const nextQuestions = shuffledQuestions.slice(0, 9);
+
+// Creamos el nuevo documento de set
+const nextSetNumber = parseInt(setId.slice(-1) || '1', 10) + 1; // Intenta obtener el número del set anterior
+const newSetRef = await db.collection('sets').add({
+    setName: `Set Semanal #${nextSetNumber}`,
+    status: 'abierto',
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+});
+
+// Creamos las 9 preguntas para el nuevo set
+const questionBatch = db.batch();
+for (let i = 0; i < 9; i++) {
+    const questionRef = db.collection('questions').doc(); // Nuevo documento de pregunta
+    let audience;
+    if (i < 3) audience = nextAudiences[0];
+    else if (i < 6) audience = nextAudiences[1];
+    else audience = nextAudiences[2];
+
+    questionBatch.set(questionRef, {
+        questionText: nextQuestions[i],
+        secretAudience: audience,
+        order: i + 1,
+        setId: newSetRef.id
+    });
+}
+await questionBatch.commit();
+console.log(`Nuevo set ${newSetRef.id} creado con 9 preguntas.`);
+
+// La función termina con el return que ya tenías
+return {
+  statusCode: 200,
+  body: `Procesamiento del set ${setId} completado y nuevo set ${newSetRef.id} creado.`
+};
