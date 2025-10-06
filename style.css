@@ -117,3 +117,31 @@ button {
 
 /* Clases de utilidad */
 .hidden { display: none !important; }
+#auth-container {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#auth-container button {
+    background-color: #2ecc71;
+    color: white;
+    font-size: 1.1em;
+}
+
+#auth-modal input {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#auth-error {
+    color: #e74c3c;
+    margin: 10px 0;
+    font-size: 0.9em;
+}

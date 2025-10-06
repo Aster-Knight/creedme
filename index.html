@@ -11,34 +11,44 @@
     <header>
         <h1>CreedMe</h1>
         <div id="user-info">
-            <span>Jugador: <b id="username">Cargando...</b></span>
-            <span>Rating: <b id="elo-rating">...</b></span>
+            <!-- Este contenido cambiará si el usuario está logueado o no -->
         </div>
     </header>
 
-    <main>
+    <!-- NUEVO: Contenedor para botones de autenticación -->
+    <div id="auth-container">
+        <p>Por favor, inicia sesión o regístrate para participar.</p>
+        <button id="show-login-btn">Iniciar Sesión</button>
+    </div>
+
+    <main class="hidden"> <!-- El juego principal estará oculto hasta que el usuario inicie sesión -->
         <h2 id="set-name">Cargando set de preguntas...</h2>
-        <div id="questions-grid">
-            <!-- Las tarjetas de las preguntas se generarán aquí con JavaScript -->
-        </div>
+        <div id="questions-grid"></div>
         <div id="loading-spinner" class="hidden">Cargando...</div>
         <div id="error-message" class="hidden"></div>
     </main>
 
-    <!-- Modal para responder preguntas (inicialmente oculto) -->
+    <!-- Modal para responder (sin cambios) -->
     <div id="response-modal" class="modal-overlay hidden">
+        <!-- ... (contenido del modal de respuesta) ... -->
+    </div>
+
+    <!-- NUEVO: Modal de Autenticación -->
+    <div id="auth-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 id="modal-question-text"></h3>
-            <textarea id="modal-textarea" placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" maxlength="280"></textarea>
-            <div id="modal-feedback" class="hidden"></div>
+            <h3>Acceso de Jugador</h3>
+            <input type="email" id="auth-email" placeholder="Correo electrónico">
+            <input type="password" id="auth-password" placeholder="Contraseña">
+            <p id="auth-error" class="hidden"></p>
             <div class="modal-actions">
-                <button id="modal-submit-btn">Enviar Respuesta</button>
-                <button id="modal-close-btn">Cerrar</button>
+                <button id="login-btn">Iniciar Sesión</button>
+                <button id="register-btn">Registrarse</button>
+                <button id="auth-close-btn">Cerrar</button>
             </div>
         </div>
     </div>
 
-    <!-- SDK de Firebase -->
+    <!-- SDK de Firebase (sin cambios) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -47,4 +57,3 @@
     <script src="firebase-init.js"></script>
     <script src="script.js"></script>
 </body>
-</html>
