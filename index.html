@@ -3,37 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CreedMe</title>
+    <title>Tenedme. Creedme. - Simulador Político</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>CreedMe</h1>
+        <h1>Tenedme. Creedme.</h1>
         <div id="user-info">
-            <!-- Este contenido cambiará si el usuario está logueado o no -->
+            <!-- Contenido dinámico -->
         </div>
     </header>
 
-    <!-- NUEVO: Contenedor para botones de autenticación -->
     <div id="auth-container">
         <p>Por favor, inicia sesión o regístrate para participar.</p>
-        <button id="show-login-btn">Iniciar Sesión</button>
+        <button id="show-login-btn">Iniciar Sesión / Registrarse</button>
     </div>
 
-    <main class="hidden"> <!-- El juego principal estará oculto hasta que el usuario inicie sesión -->
+    <main class="hidden">
         <h2 id="set-name">Cargando set de preguntas...</h2>
         <div id="questions-grid"></div>
         <div id="loading-spinner" class="hidden">Cargando...</div>
         <div id="error-message" class="hidden"></div>
     </main>
 
-    <!-- Modal para responder (sin cambios) -->
+    <!-- Modal para responder preguntas (¡AQUÍ ESTABA EL ERROR!) -->
     <div id="response-modal" class="modal-overlay hidden">
-        <!-- ... (contenido del modal de respuesta) ... -->
+        <div class="modal-content">
+            <h3 id="modal-question-text"></h3>
+            <textarea id="modal-textarea" placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" maxlength="280"></textarea>
+            <div id="modal-feedback" class="hidden"></div>
+            <div class="modal-actions">
+                <button id="modal-submit-btn">Enviar Respuesta</button>
+                <button id="modal-close-btn">Cerrar</button>
+            </div>
+        </div>
     </div>
 
-    <!-- NUEVO: Modal de Autenticación -->
+    <!-- Modal de Autenticación -->
     <div id="auth-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <h3>Acceso de Jugador</h3>
@@ -48,7 +55,7 @@
         </div>
     </div>
 
-    <!-- SDK de Firebase (sin cambios) -->
+    <!-- SDKs de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -57,3 +64,4 @@
     <script src="firebase-init.js"></script>
     <script src="script.js"></script>
 </body>
+</html>
