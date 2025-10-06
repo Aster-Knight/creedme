@@ -17,6 +17,7 @@ const modalCloseBtn = document.getElementById('modal-close-btn');
 // --- Estado del Juego ---
 let gameState = {};
 let currentUserId = null; // Lo obtendremos de Firebase Auth
+let currentQuestionInModal = null;
 
 // --- Función Principal ---
 window.onload = () => {
@@ -97,6 +98,7 @@ function renderGame() {
 }
 
 function openResponseModal(question) {
+    currentQuestionInModal = question;
     modalQuestionText.textContent = question.questionText;
     modalTextarea.value = question.responseText || '';
     
@@ -120,10 +122,57 @@ modalCloseBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
 });
 
-// TODO: Añadir lógica al botón de enviar respuesta (lo haremos en el siguiente paso)
-modalSubmitBtn.addEventListener('click', () => {
-    alert("La lógica para enviar la respuesta se implementará en el siguiente paso.");
-});
+async function handleResponseSubmit() {
+    const responseText = modalTextarea.value;
+    if (!responseText.trim() || !currentQuestionInModal || !currentUserId) {
+        alert("No se puede enviar una respuesta vacía.");
+        return;
+    }
+
+    // Deshabilitar el botón para evitar envíos múltiples
+    modalSubmitBtn.disabled = true;
+    modalSubmitBtn.textContent = "Procesando...";
+
+    try {
+        const response = await fetch('/.netlify/functions/submitResponse', {
+            method: 'POST',
+            body: JSON.stringify({
+                userId: currentUserId,
+                questionId: currentQuestionInModal.questionId,
+                responseText: responseText
+            })
+        });
+
+        if (!response.ok) { throw new Error("El servidor devolvió un error."); }
+
+        const data = await response.json();
+
+        // Actualizar la UI del modal inmediatamente
+        modalTextarea.disabled = true;
+        modalSubmitBtn.classList.add('hidden');
+        modalFeedback.textContent = `Reacción del público: "${data.geminiFeedback}"`;
+        modalFeedback.classList.remove('hidden');
+
+        // Actualizar el estado del juego localmente para no tener que recargar
+        const questionInState = gameState.questions.find(q => q.questionId === currentQuestionInModal.questionId);
+        questionInState.hasResponded = true;
+        questionInState.responseText = responseText;
+        questionInState.geminiFeedback = data.geminiFeedback;
+        
+        // Re-renderizar la cuadrícula para que la tarjeta cambie de color
+        renderGame();
+
+    } catch (error) {
+        console.error("Error al enviar la respuesta:", error);
+        alert("Hubo un problema al enviar tu respuesta. Por favor, inténtalo de nuevo.");
+    } finally {
+        // Volver a habilitar el botón en caso de error o para futuros usos
+        modalSubmitBtn.disabled = false;
+        modalSubmitBtn.textContent = "Enviar Respuesta";
+    }
+}
+
+modalSubmitBtn.addEventListener('click', handleResponseSubmit);
 
 
 // --- Funciones de UI ---
