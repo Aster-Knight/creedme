@@ -2,9 +2,15 @@
 
 const admin = require('firebase-admin');
 
-// --- INICIALIZACIÓN DE FIREBASE ---
+// --- INICIALIZACIÓN DE FIREBASE (¡AHORA COMPLETA Y CORRECTA!) ---
 const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-// ... (resto de la inicialización, sin cambios)
+if (!serviceAccountBase64) {
+  throw new Error("La variable de entorno de Firebase no está definida.");
+}
+// --- LÍNEA QUE FALTABA ---
+const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
+
+// Ahora la siguiente línea funcionará porque 'serviceAccount' sí existe
 if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
