@@ -11,3 +11,6 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+# firebase key
+firebase-service-account.json
