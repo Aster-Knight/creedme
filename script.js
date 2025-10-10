@@ -446,8 +446,6 @@ function getPlayerColor(userId) {
 // Función para renderizar la tabla de evolución de Elo (es compleja)
 async function renderAdminSetDetails(set) {
     const adminDetailsDiv = document.getElementById('admin-set-details');
-    
-    // Creamos un contenedor específico para este set
     let setContainer = document.getElementById(`admin-set-${set.setId}`);
     if (!setContainer) {
         setContainer = document.createElement('div');
@@ -467,41 +465,62 @@ async function renderAdminSetDetails(set) {
 
         const { questions, responses, users } = await response.json();
         
-        // --- SIMULACIÓN DEL CÁLCULO DE ELO ---
-        const userSimulatedElos = new Map(users.map(u => [u.id, u.eloRating]));
-        const userEvolution = new Map(users.map(u => [u.id, [u.eloRating]])); // Guardará el Elo tras cada pregunta
+        // --- SIMULACIÓN CORREGIDA ---
+        
+        // Paso 1: Calculamos el CAMBIO TOTAL de Elo para este set
+        const totalEloChanges = new Map();
+        for (const question of questions) {
+            const rankedResponses = responses.filter(r => r.questionId === question.id).sort((a, b) => a.ranking - b.ranking);
+            const N = rankedResponses.length;
+            if (N === 0) continue;
+            const k = 100 / (N > 1 ? N : 2);
+            if (N === 1) { // Lógica de jugador único AÑADIDA
+                const soloPlayerId = rankedResponses[0].userId;
+                totalEloChanges.set(soloPlayerId, (totalEloChanges.get(soloPlayerId) || 0) + k);
+                continue;
+            }
+            for (let i = 0; i < N - 1; i++) {
+                const pA_data = rankedResponses[i], pB_data = rankedResponses[i+1];
+                const pA_user = users.find(u => u.id === pA_data.userId), pB_user = users.find(u => u.id === pB_data.userId);
+                if (!pA_user || !pB_user) continue;
+                const pA_elo = pA_user.eloRating, pB_elo = pB_user.eloRating;
+                const eA = 1 / (1 + Math.pow(10, (pB_elo - pA_elo) / 400));
+                totalEloChanges.set(pA_data.userId, (totalEloChanges.get(pA_data.userId) || 0) + (k * (1 - eA)));
+                totalEloChanges.set(pB_data.userId, (totalEloChanges.get(pB_data.userId) || 0) + (k * (0 - (1-eA))));
+            }
+        }
+
+        // Paso 2: Derivamos el Elo INICIAL a partir del Elo final y el cambio total
+        const userInitialElos = new Map(users.map(u => {
+            const change = totalEloChanges.get(u.id) || 0;
+            const initialElo = u.eloRating - change;
+            return [u.id, initialElo];
+        }));
+
+        // Paso 3: Re-simulamos la evolución partiendo del Elo inicial correcto
+        let userSimulatedElos = new Map(userInitialElos);
+        const userEvolution = new Map(users.map(u => [u.id, [userInitialElos.get(u.id)]]));
         const userNames = new Map(users.map(u => [u.id, u.username]));
 
         for (const question of questions) {
             const rankedResponses = responses.filter(r => r.questionId === question.id).sort((a, b) => a.ranking - b.ranking);
             const N = rankedResponses.length;
-            if (N < 2) {
-                // Si no hay suficientes respuestas, el Elo no cambia para esta ronda
-                users.forEach(u => userEvolution.get(u.id).push(userSimulatedElos.get(u.id)));
-                continue;
-            }
-            const k = 100 / N;
-            
             const roundEloChanges = new Map();
-
-            for (let i = 0; i < N - 1; i++) {
-                const playerA_data = rankedResponses[i];
-                const playerB_data = rankedResponses[i+1];
-                
-                const playerA_elo = userSimulatedElos.get(playerA_data.userId);
-                const playerB_elo = userSimulatedElos.get(playerB_data.userId);
-
-                if (playerA_elo === undefined || playerB_elo === undefined) continue;
-
-                const expectedScoreA = 1 / (1 + Math.pow(10, (playerB_elo - playerA_elo) / 400));
-                const eloChangeA = k * (1 - expectedScoreA);
-                const eloChangeB = k * (0 - (1 - expectedScoreA));
-                
-                roundEloChanges.set(playerA_data.userId, (roundEloChanges.get(playerA_data.userId) || 0) + eloChangeA);
-                roundEloChanges.set(playerB_data.userId, (roundEloChanges.get(playerB_data.userId) || 0) + eloChangeB);
+             if (N > 0) {
+                const k = 100 / (N > 1 ? N : 2);
+                if (N === 1) { // Lógica de jugador único AÑADIDA
+                    roundEloChanges.set(rankedResponses[0].userId, k);
+                } else {
+                    for (let i = 0; i < N - 1; i++) {
+                        const pA_data = rankedResponses[i], pB_data = rankedResponses[i+1];
+                        const pA_elo = userSimulatedElos.get(pA_data.userId), pB_elo = userSimulatedElos.get(pB_data.userId);
+                        if (pA_elo === undefined || pB_elo === undefined) continue;
+                        const eA = 1 / (1 + Math.pow(10, (pB_elo - pA_elo) / 400));
+                        roundEloChanges.set(pA_data.userId, (roundEloChanges.get(pA_data.userId) || 0) + (k * (1 - eA)));
+                        roundEloChanges.set(pB_data.userId, (roundEloChanges.get(pB_data.userId) || 0) + (k * (0 - (1 - eA))));
+                    }
+                }
             }
-
-            // Aplicamos los cambios simulados y guardamos el nuevo Elo en la evolución
             users.forEach(u => {
                 const change = roundEloChanges.get(u.id) || 0;
                 const newElo = userSimulatedElos.get(u.id) + change;
@@ -509,6 +528,7 @@ async function renderAdminSetDetails(set) {
                 userEvolution.get(u.id).push(newElo);
             });
         }
+
 
         // --- CONSTRUCCIÓN DE LA TABLA HTML ---
         let tableHTML = `
