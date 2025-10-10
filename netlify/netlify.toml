@@ -1,0 +1,11 @@
+# netlify.toml
+
+[build]
+  functions = "netlify/functions"
+
+# AÑADE ESTE NUEVO BLOQUE
+[functions]
+  # Aumenta el tiempo de espera para funciones específicas
+  [functions."processSet"]
+    # El máximo en el plan gratuito es 26 segundos
+    timeout = 26
