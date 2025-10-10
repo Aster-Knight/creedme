@@ -95,9 +95,22 @@ exports.handler = async function(event) {
       const rankedResponsesSnapshot = await db.collection('responses').where('questionId', '==', question.id).orderBy('ranking').get();
       const rankedPlayers = rankedResponsesSnapshot.docs.map(doc => doc.data());
       const N = rankedPlayers.length;
-      if (N < 2) continue;
-      const k = 100 / N;
-      const cutoffIndex = Math.floor(N * 2 / 3);
+
+      if (N === 0) {
+          continue; // No hay nada que hacer si nadie respondió
+      }
+      
+      const k = 100 / (N > 1 ? N : 2); // Ajustamos k para que no sea excesivo si solo juega uno
+
+      if (N === 1) {
+          // --- LÓGICA DEL JUGADOR SOLITARIO ---
+          const soloPlayerId = rankedPlayers[0].userId;
+          // Le damos una recompensa fija, como la mitad del valor de k
+          const eloChange = k; 
+          eloChanges.set(soloPlayerId, (eloChanges.get(soloPlayerId) || 0) + eloChange);
+          console.log(`Jugador solitario ${soloPlayerId} gana ${eloChange} Elo en la pregunta.`);
+          continue; // Pasamos a la siguiente pregunta
+      }
 
       for (let i = 0; i < N - 1; i++) {
         const playerA_data = rankedPlayers[i];
