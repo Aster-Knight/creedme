@@ -42,55 +42,117 @@ let currentUser = null;
 let currentQuestionInModal = null;
 
 // --- CENTRO DE CONTROL DE LA APLICACIÓN (VERSIÓN MEJORADA) ---
-let userListener = null; // Variable para guardar nuestra "suscripción" y poder cancelarla al hacer logout
+let userListener = null;
 
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async (user) => {
+    // Si teníamos una "suscripción" activa al documento de un usuario anterior, la cancelamos.
+    if (userListener) {
+        userListener();
+    }
+
     if (user) {
         // --- ESTADO: Usuario Logueado ---
         currentUser = user;
         
+        // Actualizar la UI principal
         authContainer.classList.add('hidden');
         mainGame.classList.remove('hidden');
-        
-        // ¡NUEVA LÓGICA CON LISTENER EN TIEMPO REAL!
-        // Nos "suscribimos" al documento del usuario.
-        // La función dentro de onSnapshot se ejecutará cada vez que los datos de este usuario cambien.
+
+        // Forzamos la recarga del token para obtener los 'custom claims' más recientes
+        const tokenResult = await user.getIdTokenResult(true);
+
+        // Listener en tiempo real para los datos del usuario (Elo, nombre, etc.)
         const userRef = db.collection('users').doc(user.uid);
         userListener = userRef.onSnapshot(userDoc => {
             if (userDoc.exists) {
                 const userData = userDoc.data();
-                // Actualizamos la UI con los datos más recientes
                 userInfo.innerHTML = `
                     <span>Jugador: <b>${userData.username}</b></span>
                     <span>Rating: <b id="elo-rating">${Math.round(userData.eloRating)}</b></span>
                     <button id="logout-btn">Cerrar Sesión</button>
                 `;
-                // Añadimos el evento al botón de logout cada vez que se re-renderiza
                 document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             } else {
-                // Esto puede pasar si el documento del usuario se borra por alguna razón
                 console.error("No se encontró el documento del usuario.");
-                auth.signOut(); // Forzamos el logout para evitar errores
+                auth.signOut();
             }
         });
 
+        // --- LÓGICA DE ADMINISTRADOR ---
+        if (tokenResult.claims.admin) {
+            const adminPanel = document.getElementById('admin-panel');
+            adminPanel.classList.remove('hidden');
+
+            const processBtn = document.getElementById('admin-process-set-btn');
+            if (!processBtn.hasAttribute('data-listener-attached')) {
+                processBtn.setAttribute('data-listener-attached', 'true');
+                processBtn.addEventListener('click', async () => {
+                    const activeSetId = gameState.setId;
+                    if (!activeSetId || !confirm(`Vas a iniciar el procesamiento para el set ${activeSetId}. Este proceso no se puede detener. ¿Continuar?`)) return;
+
+                    processBtn.disabled = true;
+                    const originalButtonText = processBtn.textContent;
+                    const token = await currentUser.getIdToken();
+
+                    try {
+                        // Bucle para procesar cada pregunta
+                        for (let i = 0; i < 9; i++) {
+                            processBtn.textContent = `Procesando Pregunta ${i + 1}/9...`;
+                            
+                            const rankResponse = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}&questionIndex=${i}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!rankResponse.ok) { throw new Error(await rankResponse.text()); }
+
+                            // ¡PROGRESO EN VIVO! Llamamos a la función que renderiza la tabla de admin
+                            // para que se actualice después de cada pregunta.
+                            await renderAdminSetDetails({ setId: activeSetId, setName: gameState.setName });
+                        }
+
+                        // Llamada final para calcular el Elo y crear el nuevo set
+                        processBtn.textContent = 'Calculando Elo y creando nuevo set...';
+                        const calculateResponse = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}&step=calculate`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (!calculateResponse.ok) { throw new Error(await calculateResponse.text()); }
+
+                        alert('¡Set procesado con éxito! La página se recargará.');
+                        location.reload();
+
+                    } catch (error) {
+                        alert(`Hubo un error al procesar el set: ${error.message}`);
+                    } finally {
+                        processBtn.disabled = false;
+                        processBtn.textContent = originalButtonText;
+                    }
+                });
+            }
+        }
+
+        // --- Carga de Datos del Juego ---
         fetchGameState();
-        fetchAndRenderResults();
+        const closedSets = await fetchAndRenderResults(); // Esperamos a que termine y nos devuelva los sets
+        
+        // Renderizamos los detalles de admin DESPUÉS de tener los sets cerrados
+        if (tokenResult.claims.admin && closedSets && closedSets.length > 0) {
+            closedSets.forEach(set => renderAdminSetDetails(set));
+        }
+        
         fetchAndRenderGlobalLeaderboard();
+
     } else {
         // --- ESTADO: Usuario No Logueado ---
         currentUser = null;
         
-        // Si teníamos una "suscripción" activa, la cancelamos para ahorrar recursos.
-        if (userListener) {
-            userListener(); // Llama a la función de cancelación que nos da onSnapshot
-        }
-        
+        // Ocultar todos los elementos del juego y mostrar el login
         userInfo.innerHTML = '';
         authContainer.classList.remove('hidden');
         mainGame.classList.add('hidden');
         resultsSection.classList.add('hidden');
         globalLeaderboardSection.classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
     }
 });
 
@@ -155,7 +217,7 @@ async function fetchGameState() {
 
 
 async function fetchAndRenderResults() {
-    if (!currentUser) return;
+    if (!currentUser) return []; // Si no hay usuario, devuelve un array vacío
 
     try {
         const response = await fetch('/.netlify/functions/getResults', {
@@ -172,7 +234,6 @@ async function fetchAndRenderResults() {
                 const setResultCard = document.createElement('div');
                 setResultCard.className = 'set-result-card';
 
-        // Modificamos el .map para añadir el evento onclick
                 let resultsHTML = set.results.map(res => `
                     <li data-question-id="${res.questionId}" data-question-text="Pregunta #${res.questionOrder}">
                         <strong>Pregunta #${res.questionOrder}:</strong> Quedaste en el puesto <strong>#${res.yourRanking}</strong>. 
@@ -184,7 +245,6 @@ async function fetchAndRenderResults() {
                 setResultCard.innerHTML = `<h3>${set.setName}</h3><ul class="result-list">${resultsHTML}</ul>`;
                 setsList.appendChild(setResultCard);
 
-                // Añadimos los event listeners a los nuevos elementos 'li'
                 setResultCard.querySelectorAll('.result-list li').forEach(item => {
                     item.addEventListener('click', () => {
                         const qId = item.getAttribute('data-question-id');
@@ -195,12 +255,15 @@ async function fetchAndRenderResults() {
             });
             resultsSection.classList.remove('hidden');
         }
-
+        return closedSets; // Devolvemos los sets para que la lógica de admin los pueda usar
     } catch (error) {
         console.error("Error al renderizar los resultados:", error);
+        return []; // En caso de error, devolvemos un array vacío
     }
 }
 
+
+// script.js
 
 function renderGame() {
     questionsGrid.innerHTML = '';
@@ -209,18 +272,33 @@ function renderGame() {
     gameState.questions.forEach(q => {
         const card = document.createElement('div');
         card.classList.add('question-card');
+
+        // --- LÓGICA DE GRUPOS Y COLORES ---
+        if (q.order <= 3) {
+            card.classList.add('group-1');
+        } else if (q.order <= 6) {
+            card.classList.add('group-2');
+        } else {
+            card.classList.add('group-3');
+        }
+
         const title = document.createElement('h4');
         title.textContent = `Pregunta #${q.order}`;
+        
         const status = document.createElement('p');
+
         if (q.hasResponded) {
             card.classList.add('answered');
             status.textContent = "Ya has respondido.";
         } else {
             status.textContent = "Pendiente de respuesta.";
         }
+        
         card.appendChild(title);
         card.appendChild(status);
+
         card.addEventListener('click', () => openResponseModal(q));
+        
         questionsGrid.appendChild(card);
     });
 }
@@ -354,3 +432,137 @@ async function showQuestionLeaderboard(questionId, questionText) {
 }
 
 leaderboardCloseBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+
+// Función para asignar un color consistente a cada jugador
+function getPlayerColor(userId) {
+    const colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4'];
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+        hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash % colors.length)];
+}
+
+// Función para renderizar la tabla de evolución de Elo (es compleja)
+async function renderAdminSetDetails(set) {
+    const adminDetailsDiv = document.getElementById('admin-set-details');
+    let setContainer = document.getElementById(`admin-set-${set.setId}`);
+    if (!setContainer) {
+        setContainer = document.createElement('div');
+        setContainer.id = `admin-set-${set.setId}`;
+        adminDetailsDiv.appendChild(setContainer);
+    }
+    setContainer.innerHTML = `<p>Cargando detalles para ${set.setName}...</p>`;
+
+    try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/getSetDetails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ setId: set.setId })
+        });
+        if (!response.ok) throw new Error('No se pudieron cargar los detalles del set.');
+
+        const { questions, responses, users } = await response.json();
+        
+        // --- SIMULACIÓN CORREGIDA ---
+        
+        // Paso 1: Calculamos el CAMBIO TOTAL de Elo para este set
+        const totalEloChanges = new Map();
+        for (const question of questions) {
+            const rankedResponses = responses.filter(r => r.questionId === question.id).sort((a, b) => a.ranking - b.ranking);
+            const N = rankedResponses.length;
+            if (N === 0) continue;
+            const k = 100 / (N > 1 ? N : 2);
+            if (N === 1) { // Lógica de jugador único AÑADIDA
+                const soloPlayerId = rankedResponses[0].userId;
+                totalEloChanges.set(soloPlayerId, (totalEloChanges.get(soloPlayerId) || 0) + k);
+                continue;
+            }
+            for (let i = 0; i < N - 1; i++) {
+                const pA_data = rankedResponses[i], pB_data = rankedResponses[i+1];
+                const pA_user = users.find(u => u.id === pA_data.userId), pB_user = users.find(u => u.id === pB_data.userId);
+                if (!pA_user || !pB_user) continue;
+                const pA_elo = pA_user.eloRating, pB_elo = pB_user.eloRating;
+                const eA = 1 / (1 + Math.pow(10, (pB_elo - pA_elo) / 400));
+                totalEloChanges.set(pA_data.userId, (totalEloChanges.get(pA_data.userId) || 0) + (k * (1 - eA)));
+                totalEloChanges.set(pB_data.userId, (totalEloChanges.get(pB_data.userId) || 0) + (k * (0 - (1-eA))));
+            }
+        }
+
+        // Paso 2: Derivamos el Elo INICIAL a partir del Elo final y el cambio total
+        const userInitialElos = new Map(users.map(u => {
+            const change = totalEloChanges.get(u.id) || 0;
+            const initialElo = u.eloRating - change;
+            return [u.id, initialElo];
+        }));
+
+        // Paso 3: Re-simulamos la evolución partiendo del Elo inicial correcto
+        let userSimulatedElos = new Map(userInitialElos);
+        const userEvolution = new Map(users.map(u => [u.id, [userInitialElos.get(u.id)]]));
+        const userNames = new Map(users.map(u => [u.id, u.username]));
+
+        for (const question of questions) {
+            const rankedResponses = responses.filter(r => r.questionId === question.id).sort((a, b) => a.ranking - b.ranking);
+            const N = rankedResponses.length;
+            const roundEloChanges = new Map();
+             if (N > 0) {
+                const k = 100 / (N > 1 ? N : 2);
+                if (N === 1) { // Lógica de jugador único AÑADIDA
+                    roundEloChanges.set(rankedResponses[0].userId, k);
+                } else {
+                    for (let i = 0; i < N - 1; i++) {
+                        const pA_data = rankedResponses[i], pB_data = rankedResponses[i+1];
+                        const pA_elo = userSimulatedElos.get(pA_data.userId), pB_elo = userSimulatedElos.get(pB_data.userId);
+                        if (pA_elo === undefined || pB_elo === undefined) continue;
+                        const eA = 1 / (1 + Math.pow(10, (pB_elo - pA_elo) / 400));
+                        roundEloChanges.set(pA_data.userId, (roundEloChanges.get(pA_data.userId) || 0) + (k * (1 - eA)));
+                        roundEloChanges.set(pB_data.userId, (roundEloChanges.get(pB_data.userId) || 0) + (k * (0 - (1 - eA))));
+                    }
+                }
+            }
+            users.forEach(u => {
+                const change = roundEloChanges.get(u.id) || 0;
+                const newElo = userSimulatedElos.get(u.id) + change;
+                userSimulatedElos.set(u.id, newElo);
+                userEvolution.get(u.id).push(newElo);
+            });
+        }
+
+
+        // --- CONSTRUCCIÓN DE LA TABLA HTML ---
+        let tableHTML = `
+            <h4>Evolución de Elo para ${set.setName}</h4>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Elo Inicial</th>
+                        ${questions.map(q => `<th>Preg. #${q.order}</th>`).join('')}
+                        <th>Elo Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const user of users) {
+            const color = getPlayerColor(user.id);
+            const evolutionData = userEvolution.get(user.id);
+            tableHTML += `
+                <tr>
+                    <td><span style="color: ${color}; font-weight: bold;">${userNames.get(user.id)}</span></td>
+                    <td>${Math.round(evolutionData[0])}</td>
+                    ${evolutionData.slice(1).map(elo => `<td>${Math.round(elo)}</td>`).join('')}
+                    <td><strong>${Math.round(evolutionData[evolutionData.length - 1])}</strong></td>
+                </tr>
+            `;
+        }
+
+        tableHTML += `</tbody></table>`;
+        setContainer.innerHTML = tableHTML;
+
+    } catch (error) {
+        console.error(`Error al renderizar detalles del set ${set.setName}:`, error);
+        setContainer.innerHTML = `<p>Error al cargar detalles para ${set.setName}.</p>`;
+    }
+}
