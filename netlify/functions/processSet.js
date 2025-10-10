@@ -18,8 +18,8 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async function(event) {
+  // --- SEGURIDAD POR TOKEN DE ADMIN ---
   const { authorization } = event.headers;
-
   if (!authorization || !authorization.startsWith('Bearer ')) {
       return { statusCode: 401, body: 'No autorizado: Falta token.' };
   }
@@ -62,7 +62,15 @@ exports.handler = async function(event) {
         return { statusCode: 200, body: `Pregunta ${qIndex + 1} no tiene respuestas. Saltando.` };
       }
 
-      const rankingPrompt = `...`; // (Tu prompt de ranking aquí)
+      const rankingPrompt = `
+        Contexto: Estás evaluando discursos para un público de "[${question.secretAudience}]".
+        Tarea: Analiza la siguiente lista de discursos. Tu única salida debe ser un array JSON ordenado. 
+        El array debe contener objetos con la clave "responseId", ordenados desde el mejor discurso (índice 0) hasta el peor, según la perspectiva del público.
+        
+        Discursos:
+        ${responsesForQuestion.map(r => JSON.stringify({ responseId: r.id, text: r.responseText })).join('\n')}
+      `;
+      
       const geminiApiKey = process.env.GEMINI_API_KEY;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${geminiApiKey}`;
       const payload = { contents: [{ parts: [{ text: rankingPrompt }] }] };
@@ -73,16 +81,27 @@ exports.handler = async function(event) {
         throw new Error(`Gemini no devolvió candidatos para la pregunta ${qIndex + 1}.`);
       }
 
-      const rankedText = geminiData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const rankedIds = JSON.parse(rankedText);
+      // Lógica robusta para extraer el JSON
+      const rawResponse = geminiData.candidates[0].content.parts[0].text;
+      const startIndex = rawResponse.indexOf('[');
+      const endIndex = rawResponse.lastIndexOf(']');
+
+      if (startIndex === -1 || endIndex === -1) {
+          throw new Error(`Gemini no devolvió un array JSON válido. Respuesta recibida: ${rawResponse}`);
+      }
+
+      const jsonString = rawResponse.substring(startIndex, endIndex + 1);
+      const rankedIds = JSON.parse(jsonString);
 
       const batch = db.batch();
       rankedIds.forEach((item, index) => {
-        const responseRef = db.collection('responses').doc(item.responseId);
-        batch.update(responseRef, { ranking: index + 1 });
+        if (item.responseId) { // Verificación extra
+            const responseRef = db.collection('responses').doc(item.responseId);
+            batch.update(responseRef, { ranking: index + 1 });
+        }
       });
       await batch.commit();
-
+      
       return { statusCode: 200, body: `Ranking para la pregunta ${qIndex + 1} completado.` };
     }
 
@@ -109,7 +128,16 @@ exports.handler = async function(event) {
         }
 
         for (let i = 0; i < N - 1; i++) {
-          // ... (lógica de cálculo de Elo por pares, sin cambios)
+          const playerA_data = rankedPlayers[i];
+          const playerB_data = rankedPlayers[i+1];
+          if (!usersMap.has(playerA_data.userId) || !usersMap.has(playerB_data.userId)) continue;
+          const playerA_elo = usersMap.get(playerA_data.userId).eloRating;
+          const playerB_elo = usersMap.get(playerB_data.userId).eloRating;
+          const expectedScoreA = 1 / (1 + Math.pow(10, (playerB_elo - playerA_elo) / 400));
+          const eloChangeA = k * (1 - expectedScoreA);
+          const eloChangeB = k * (0 - (1 - expectedScoreA));
+          eloChanges.set(playerA_data.userId, (eloChanges.get(playerA_data.userId) || 0) + eloChangeA);
+          eloChanges.set(playerB_data.userId, (eloChanges.get(playerB_data.userId) || 0) + eloChangeB);
         }
       }
 
@@ -123,7 +151,41 @@ exports.handler = async function(event) {
       
       await setRef.update({ status: 'cerrado', processedAt: admin.firestore.FieldValue.serverTimestamp() });
 
-      // ... (Lógica para crear el nuevo set, sin cambios)
+      console.log("Creando el siguiente set...");
+      const possibleAudiences = ["Ecologistas", "Empresarios tecnológicos", "Sindicalistas", "Conservadores fiscales", "Jubilados", "Jóvenes universitarios"];
+      const shuffledAudiences = possibleAudiences.sort(() => 0.5 - Math.random());
+      const nextAudiences = [shuffledAudiences[0], shuffledAudiences[1], shuffledAudiences[2]];
+      const possibleQuestions = [
+          "¿Cuál es la reforma más urgente para el sistema educativo?", "¿Cómo debería el gobierno abordar la crisis de la vivienda?",
+          "¿Qué papel debe jugar la energía nuclear en nuestro futuro energético?", "¿Son los impuestos actuales demasiado altos o demasiado bajos?",
+          "¿Cómo equilibramos la privacidad personal con la seguridad nacional?", "¿Cuál es la mejor estrategia para fomentar la innovación en el país?",
+          "¿Debería ser la sanidad un servicio público o privado?", "¿Qué medida propondría para combatir el cambio climático?",
+          "¿Cómo podemos mejorar la integración de los inmigrantes?", "¿Es necesario reformar el sistema de pensiones?",
+          "¿Qué se debe hacer para reducir la delincuencia?", "¿Cuál es su postura sobre la regulación de la inteligencia artificial?"
+      ];
+      const shuffledQuestions = possibleQuestions.sort(() => 0.5 - Math.random());
+      const nextQuestions = shuffledQuestions.slice(0, 9);
+      
+      const currentSetData = await setRef.get();
+      const currentSetName = currentSetData.data().setName || 'Set #0';
+      const currentSetNumberMatch = currentSetName.match(/\d+/);
+      const currentSetNumber = currentSetNumberMatch ? parseInt(currentSetNumberMatch[0], 10) : 0;
+      
+      const newSetRef = await db.collection('sets').add({
+          setName: `Set Semanal #${currentSetNumber + 1}`, status: 'abierto', createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      const questionBatch = db.batch();
+      for (let i = 0; i < 9; i++) {
+          const questionRef = db.collection('questions').doc();
+          let audience;
+          if (i < 3) audience = nextAudiences[0]; else if (i < 6) audience = nextAudiences[1]; else audience = nextAudiences[2];
+          questionBatch.set(questionRef, {
+              questionText: nextQuestions[i], secretAudience: audience, order: i + 1, setId: newSetRef.id
+          });
+      }
+      await questionBatch.commit();
+      console.log(`Nuevo set ${newSetRef.id} creado con 9 preguntas.`);
       
       return { statusCode: 200, body: `Cálculo de Elo y creación del nuevo set completados.` };
     }
@@ -132,8 +194,7 @@ exports.handler = async function(event) {
 
   } catch (error) {
     console.error("Error en processSet:", error);
-    // Marcamos el set como "abierto" de nuevo si algo falló
-    await db.collection('sets').doc(setId).update({ status: 'abierto' });
+    await db.collection('sets').doc(setId).update({ status: 'abierto' }).catch(() => {});
     return { statusCode: 500, body: `Error procesando el set: ${error.message}` };
   }
 };
