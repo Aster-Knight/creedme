@@ -44,81 +44,95 @@ let currentQuestionInModal = null;
 // --- CENTRO DE CONTROL DE LA APLICACIÓN (VERSIÓN MEJORADA) ---
 let userListener = null;
 
-auth.onAuthStateChanged(async (user) => { // ¡Añadimos async aquí!
-    // Cancelar el listener anterior si existe
-    if (userListener) userListener();
+auth.onAuthStateChanged(async (user) => {
+    // Si teníamos una "suscripción" activa al documento de un usuario anterior, la cancelamos.
+    if (userListener) {
+        userListener();
+    }
 
     if (user) {
+        // --- ESTADO: Usuario Logueado ---
         currentUser = user;
+        
+        // Actualizar la UI principal
         authContainer.classList.add('hidden');
         mainGame.classList.remove('hidden');
 
-        // --- LÓGICA DE ADMIN ---
-        const tokenResult = await user.getIdTokenResult();
-        if (tokenResult.claims.admin) {
-            document.getElementById('admin-panel').classList.remove('hidden');
-            // script.js (dentro de onAuthStateChanged, en el bloque if (tokenResult.claims.admin))
-            const processBtn = document.getElementById('admin-process-set-btn');
-            processBtn.addEventListener('click', async () => {
-                const activeSetId = gameState.setId;
-                if (!activeSetId || !confirm(`¿Estás seguro de que quieres finalizar el set ${activeSetId}?`)) return;
+        // Forzamos la recarga del token para obtener los 'custom claims' más recientes
+        const tokenResult = await user.getIdTokenResult(true);
 
-                processBtn.disabled = true;
-                processBtn.textContent = 'Procesando...';
-                
-                // ¡Importante! Ahora pasamos el token de autenticación para seguridad
-                const token = await currentUser.getIdToken();
-                const response = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (response.ok) {
-                    alert('¡Set procesado con éxito!');
-                    location.reload(); // Recargamos la página para ver los cambios
-                } else {
-                    alert('Hubo un error al procesar el set.');
-                }
-                processBtn.disabled = false;
-                processBtn.textContent = 'Finalizar Set Actual';
-            });
-            // TODO: Añadir event listeners a los botones de admin
-        }
-        // --- FIN LÓGICA DE ADMIN ---
-        
-        // ¡NUEVA LÓGICA CON LISTENER EN TIEMPO REAL!
-        // Nos "suscribimos" al documento del usuario.
-        // La función dentro de onSnapshot se ejecutará cada vez que los datos de este usuario cambien.
+        // Listener en tiempo real para los datos del usuario (Elo, nombre, etc.)
         const userRef = db.collection('users').doc(user.uid);
         userListener = userRef.onSnapshot(userDoc => {
             if (userDoc.exists) {
                 const userData = userDoc.data();
-                // Actualizamos la UI con los datos más recientes
                 userInfo.innerHTML = `
                     <span>Jugador: <b>${userData.username}</b></span>
                     <span>Rating: <b id="elo-rating">${Math.round(userData.eloRating)}</b></span>
                     <button id="logout-btn">Cerrar Sesión</button>
                 `;
-                // Añadimos el evento al botón de logout cada vez que se re-renderiza
                 document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
             } else {
-                // Esto puede pasar si el documento del usuario se borra por alguna razón
                 console.error("No se encontró el documento del usuario.");
-                auth.signOut(); // Forzamos el logout para evitar errores
+                auth.signOut();
             }
         });
 
+        // --- LÓGICA DE ADMINISTRADOR ---
+        if (tokenResult.claims.admin) {
+            const adminPanel = document.getElementById('admin-panel');
+            adminPanel.classList.remove('hidden');
+
+            const processBtn = document.getElementById('admin-process-set-btn');
+            // Evitamos añadir múltiples listeners si la función se ejecuta varias veces
+            if (!processBtn.hasAttribute('data-listener-attached')) {
+                processBtn.setAttribute('data-listener-attached', 'true');
+                processBtn.addEventListener('click', async () => {
+                    const activeSetId = gameState.setId;
+                    if (!activeSetId || !confirm(`¿Estás seguro de que quieres finalizar el set ${activeSetId}?`)) return;
+
+                    processBtn.disabled = true;
+                    processBtn.textContent = 'Procesando...';
+                    
+                    try {
+                        const token = await currentUser.getIdToken();
+                        const response = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (response.ok) {
+                            alert('¡Set procesado con éxito! La página se recargará.');
+                            location.reload();
+                        } else {
+                            const errorText = await response.text();
+                            throw new Error(errorText);
+                        }
+                    } catch (error) {
+                         alert(`Hubo un error al procesar el set: ${error.message}`);
+                    } finally {
+                        processBtn.disabled = false;
+                        processBtn.textContent = 'Finalizar Set Actual y Calcular Puntos';
+                    }
+                });
+            }
+        }
+
+        // --- Carga de Datos del Juego ---
         fetchGameState();
-        fetchAndRenderResults();
+        const closedSets = await fetchAndRenderResults(); // Esperamos a que termine y nos devuelva los sets
+        
+        // Renderizamos los detalles de admin DESPUÉS de tener los sets cerrados
+        if (tokenResult.claims.admin && closedSets && closedSets.length > 0) {
+            closedSets.forEach(set => renderAdminSetDetails(set));
+        }
+        
         fetchAndRenderGlobalLeaderboard();
+
     } else {
         // --- ESTADO: Usuario No Logueado ---
         currentUser = null;
         
-        // Si teníamos una "suscripción" activa, la cancelamos para ahorrar recursos.
-        if (userListener) {
-            userListener(); // Llama a la función de cancelación que nos da onSnapshot
-        }
-        
+        // Ocultar todos los elementos del juego y mostrar el login
         userInfo.innerHTML = '';
         authContainer.classList.remove('hidden');
         mainGame.classList.add('hidden');
@@ -422,8 +436,104 @@ function getPlayerColor(userId) {
 
 // Función para renderizar la tabla de evolución de Elo (es compleja)
 async function renderAdminSetDetails(set) {
-    // ... (Esta función será muy larga y se encargará de llamar a getSetDetails y construir la tabla)
-    // Por ahora, la dejaremos como un TODO para no hacer este paso demasiado masivo.
     const adminDetailsDiv = document.getElementById('admin-set-details');
-    adminDetailsDiv.innerHTML = `<p>Detalles para el set: ${set.setName}</p>`;
+    
+    // Creamos un contenedor específico para este set
+    let setContainer = document.getElementById(`admin-set-${set.setId}`);
+    if (!setContainer) {
+        setContainer = document.createElement('div');
+        setContainer.id = `admin-set-${set.setId}`;
+        adminDetailsDiv.appendChild(setContainer);
+    }
+    setContainer.innerHTML = `<p>Cargando detalles para ${set.setName}...</p>`;
+
+    try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch('/.netlify/functions/getSetDetails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ setId: set.setId })
+        });
+        if (!response.ok) throw new Error('No se pudieron cargar los detalles del set.');
+
+        const { questions, responses, users } = await response.json();
+        
+        // --- SIMULACIÓN DEL CÁLCULO DE ELO ---
+        const userSimulatedElos = new Map(users.map(u => [u.id, u.eloRating]));
+        const userEvolution = new Map(users.map(u => [u.id, [u.eloRating]])); // Guardará el Elo tras cada pregunta
+        const userNames = new Map(users.map(u => [u.id, u.username]));
+
+        for (const question of questions) {
+            const rankedResponses = responses.filter(r => r.questionId === question.id).sort((a, b) => a.ranking - b.ranking);
+            const N = rankedResponses.length;
+            if (N < 2) {
+                // Si no hay suficientes respuestas, el Elo no cambia para esta ronda
+                users.forEach(u => userEvolution.get(u.id).push(userSimulatedElos.get(u.id)));
+                continue;
+            }
+            const k = 100 / N;
+            
+            const roundEloChanges = new Map();
+
+            for (let i = 0; i < N - 1; i++) {
+                const playerA_data = rankedResponses[i];
+                const playerB_data = rankedResponses[i+1];
+                
+                const playerA_elo = userSimulatedElos.get(playerA_data.userId);
+                const playerB_elo = userSimulatedElos.get(playerB_data.userId);
+
+                if (playerA_elo === undefined || playerB_elo === undefined) continue;
+
+                const expectedScoreA = 1 / (1 + Math.pow(10, (playerB_elo - playerA_elo) / 400));
+                const eloChangeA = k * (1 - expectedScoreA);
+                const eloChangeB = k * (0 - (1 - expectedScoreA));
+                
+                roundEloChanges.set(playerA_data.userId, (roundEloChanges.get(playerA_data.userId) || 0) + eloChangeA);
+                roundEloChanges.set(playerB_data.userId, (roundEloChanges.get(playerB_data.userId) || 0) + eloChangeB);
+            }
+
+            // Aplicamos los cambios simulados y guardamos el nuevo Elo en la evolución
+            users.forEach(u => {
+                const change = roundEloChanges.get(u.id) || 0;
+                const newElo = userSimulatedElos.get(u.id) + change;
+                userSimulatedElos.set(u.id, newElo);
+                userEvolution.get(u.id).push(newElo);
+            });
+        }
+
+        // --- CONSTRUCCIÓN DE LA TABLA HTML ---
+        let tableHTML = `
+            <h4>Evolución de Elo para ${set.setName}</h4>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Elo Inicial</th>
+                        ${questions.map(q => `<th>Preg. #${q.order}</th>`).join('')}
+                        <th>Elo Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        for (const user of users) {
+            const color = getPlayerColor(user.id);
+            const evolutionData = userEvolution.get(user.id);
+            tableHTML += `
+                <tr>
+                    <td><span style="color: ${color}; font-weight: bold;">${userNames.get(user.id)}</span></td>
+                    <td>${Math.round(evolutionData[0])}</td>
+                    ${evolutionData.slice(1).map(elo => `<td>${Math.round(elo)}</td>`).join('')}
+                    <td><strong>${Math.round(evolutionData[evolutionData.length - 1])}</strong></td>
+                </tr>
+            `;
+        }
+
+        tableHTML += `</tbody></table>`;
+        setContainer.innerHTML = tableHTML;
+
+    } catch (error) {
+        console.error(`Error al renderizar detalles del set ${set.setName}:`, error);
+        setContainer.innerHTML = `<p>Error al cargar detalles para ${set.setName}.</p>`;
+    }
 }

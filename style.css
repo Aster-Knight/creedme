@@ -238,3 +238,19 @@ button {
 .question-card.answered.group-1 { background-color: #eaf4fb; }
 .question-card.answered.group-2 { background-color: #fbeee4; }
 .question-card.answered.group-3 { background-color: #eafaf1; }
+
+/* style.css (AÑADIR AL FINAL) */
+.admin-table {
+    width: 100%;
+    margin-top: 15px;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+.admin-table th, .admin-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+.admin-table th {
+    background-color: #f2f2f2;
+}
