@@ -19,16 +19,34 @@ const db = admin.firestore();
 
 // --- LÓGICA PRINCIPAL DE LA FUNCIÓN ---
 exports.handler = async function(event) {
-  const { secret, setId } = event.queryStringParameters;
-  if (secret !== process.env.ADMIN_SECRET_KEY) {
-    return { statusCode: 401, body: 'No autorizado.' };
+  // --- ¡NUEVA LÓGICA DE SEGURIDAD POR TOKEN! ---
+  const { authorization } = event.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+      return { statusCode: 401, body: 'No autorizado: Falta token.' };
   }
+
+  const token = authorization.split('Bearer ')[1];
+  let decodedToken;
+  try {
+      decodedToken = await admin.auth().verifyIdToken(token);
+  } catch (error) {
+      return { statusCode: 401, body: 'No autorizado: Token inválido.' };
+  }
+
+  // Verificamos que el usuario tenga el "claim" de admin
+  if (!decodedToken.admin) {
+      return { statusCode: 403, body: 'Prohibido: Se requiere rol de administrador.' };
+  }
+  // --- FIN DE LA LÓGICA DE SEGURIDAD ---
+
+  const { setId } = event.queryStringParameters;
   if (!setId) {
     return { statusCode: 400, body: 'Falta el ID del set.' };
   }
 
   try {
-    console.log(`Iniciando procesamiento para el set: ${setId}`);
+    console.log(`Procesamiento iniciado por el admin: ${decodedToken.uid} para el set: ${setId}`);
     const setRef = db.collection('sets').doc(setId);
     await setRef.update({ status: 'cerrado' });
 

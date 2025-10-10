@@ -42,15 +42,48 @@ let currentUser = null;
 let currentQuestionInModal = null;
 
 // --- CENTRO DE CONTROL DE LA APLICACIÓN (VERSIÓN MEJORADA) ---
-let userListener = null; // Variable para guardar nuestra "suscripción" y poder cancelarla al hacer logout
+let userListener = null;
 
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async (user) => { // ¡Añadimos async aquí!
+    // Cancelar el listener anterior si existe
+    if (userListener) userListener();
+
     if (user) {
-        // --- ESTADO: Usuario Logueado ---
         currentUser = user;
-        
         authContainer.classList.add('hidden');
         mainGame.classList.remove('hidden');
+
+        // --- LÓGICA DE ADMIN ---
+        const tokenResult = await user.getIdTokenResult();
+        if (tokenResult.claims.admin) {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            // script.js (dentro de onAuthStateChanged, en el bloque if (tokenResult.claims.admin))
+            const processBtn = document.getElementById('admin-process-set-btn');
+            processBtn.addEventListener('click', async () => {
+                const activeSetId = gameState.setId;
+                if (!activeSetId || !confirm(`¿Estás seguro de que quieres finalizar el set ${activeSetId}?`)) return;
+
+                processBtn.disabled = true;
+                processBtn.textContent = 'Procesando...';
+                
+                // ¡Importante! Ahora pasamos el token de autenticación para seguridad
+                const token = await currentUser.getIdToken();
+                const response = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('¡Set procesado con éxito!');
+                    location.reload(); // Recargamos la página para ver los cambios
+                } else {
+                    alert('Hubo un error al procesar el set.');
+                }
+                processBtn.disabled = false;
+                processBtn.textContent = 'Finalizar Set Actual';
+            });
+            // TODO: Añadir event listeners a los botones de admin
+        }
+        // --- FIN LÓGICA DE ADMIN ---
         
         // ¡NUEVA LÓGICA CON LISTENER EN TIEMPO REAL!
         // Nos "suscribimos" al documento del usuario.
@@ -91,6 +124,7 @@ auth.onAuthStateChanged(user => {
         mainGame.classList.add('hidden');
         resultsSection.classList.add('hidden');
         globalLeaderboardSection.classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
     }
 });
 
@@ -157,6 +191,10 @@ async function fetchGameState() {
 async function fetchAndRenderResults() {
     if (!currentUser) return;
 
+    if (tokenResult.claims.admin) {
+    closedSets.forEach(set => renderAdminSetDetails(set));
+    }
+
     try {
         const response = await fetch('/.netlify/functions/getResults', {
             method: 'POST',
@@ -202,6 +240,8 @@ async function fetchAndRenderResults() {
 }
 
 
+// script.js
+
 function renderGame() {
     questionsGrid.innerHTML = '';
     setNameElement.textContent = gameState.setName;
@@ -209,18 +249,33 @@ function renderGame() {
     gameState.questions.forEach(q => {
         const card = document.createElement('div');
         card.classList.add('question-card');
+
+        // --- LÓGICA DE GRUPOS Y COLORES ---
+        if (q.order <= 3) {
+            card.classList.add('group-1');
+        } else if (q.order <= 6) {
+            card.classList.add('group-2');
+        } else {
+            card.classList.add('group-3');
+        }
+
         const title = document.createElement('h4');
         title.textContent = `Pregunta #${q.order}`;
+        
         const status = document.createElement('p');
+
         if (q.hasResponded) {
             card.classList.add('answered');
             status.textContent = "Ya has respondido.";
         } else {
             status.textContent = "Pendiente de respuesta.";
         }
+        
         card.appendChild(title);
         card.appendChild(status);
+
         card.addEventListener('click', () => openResponseModal(q));
+        
         questionsGrid.appendChild(card);
     });
 }
@@ -354,3 +409,21 @@ async function showQuestionLeaderboard(questionId, questionText) {
 }
 
 leaderboardCloseBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
+
+// Función para asignar un color consistente a cada jugador
+function getPlayerColor(userId) {
+    const colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4'];
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+        hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash % colors.length)];
+}
+
+// Función para renderizar la tabla de evolución de Elo (es compleja)
+async function renderAdminSetDetails(set) {
+    // ... (Esta función será muy larga y se encargará de llamar a getSetDetails y construir la tabla)
+    // Por ahora, la dejaremos como un TODO para no hacer este paso demasiado masivo.
+    const adminDetailsDiv = document.getElementById('admin-set-details');
+    adminDetailsDiv.innerHTML = `<p>Detalles para el set: ${set.setName}</p>`;
+}
