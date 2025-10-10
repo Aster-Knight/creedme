@@ -84,34 +84,48 @@ auth.onAuthStateChanged(async (user) => {
             adminPanel.classList.remove('hidden');
 
             const processBtn = document.getElementById('admin-process-set-btn');
-            // Evitamos añadir múltiples listeners si la función se ejecuta varias veces
             if (!processBtn.hasAttribute('data-listener-attached')) {
                 processBtn.setAttribute('data-listener-attached', 'true');
                 processBtn.addEventListener('click', async () => {
                     const activeSetId = gameState.setId;
-                    if (!activeSetId || !confirm(`¿Estás seguro de que quieres finalizar el set ${activeSetId}?`)) return;
+                    if (!activeSetId || !confirm(`Vas a iniciar el procesamiento para el set ${activeSetId}. Este proceso no se puede detener. ¿Continuar?`)) return;
 
                     processBtn.disabled = true;
-                    processBtn.textContent = 'Procesando...';
-                    
+                    const originalButtonText = processBtn.textContent;
+                    const token = await currentUser.getIdToken();
+
                     try {
-                        const token = await currentUser.getIdToken();
-                        const response = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}`, {
+                        // Bucle para procesar cada pregunta
+                        for (let i = 0; i < 9; i++) {
+                            processBtn.textContent = `Procesando Pregunta ${i + 1}/9...`;
+                            
+                            const rankResponse = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}&questionIndex=${i}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+
+                            if (!rankResponse.ok) { throw new Error(await rankResponse.text()); }
+
+                            // ¡PROGRESO EN VIVO! Llamamos a la función que renderiza la tabla de admin
+                            // para que se actualice después de cada pregunta.
+                            await renderAdminSetDetails({ setId: activeSetId, setName: gameState.setName });
+                        }
+
+                        // Llamada final para calcular el Elo y crear el nuevo set
+                        processBtn.textContent = 'Calculando Elo y creando nuevo set...';
+                        const calculateResponse = await fetch(`/.netlify/functions/processSet?setId=${activeSetId}&step=calculate`, {
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
 
-                        if (response.ok) {
-                            alert('¡Set procesado con éxito! La página se recargará.');
-                            location.reload();
-                        } else {
-                            const errorText = await response.text();
-                            throw new Error(errorText);
-                        }
+                        if (!calculateResponse.ok) { throw new Error(await calculateResponse.text()); }
+
+                        alert('¡Set procesado con éxito! La página se recargará.');
+                        location.reload();
+
                     } catch (error) {
-                         alert(`Hubo un error al procesar el set: ${error.message}`);
+                        alert(`Hubo un error al procesar el set: ${error.message}`);
                     } finally {
                         processBtn.disabled = false;
-                        processBtn.textContent = 'Finalizar Set Actual y Calcular Puntos';
+                        processBtn.textContent = originalButtonText;
                     }
                 });
             }
