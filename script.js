@@ -203,11 +203,7 @@ async function fetchGameState() {
 
 
 async function fetchAndRenderResults() {
-    if (!currentUser) return;
-
-    if (tokenResult.claims.admin) {
-    closedSets.forEach(set => renderAdminSetDetails(set));
-    }
+    if (!currentUser) return []; // Si no hay usuario, devuelve un array vacío
 
     try {
         const response = await fetch('/.netlify/functions/getResults', {
@@ -224,7 +220,6 @@ async function fetchAndRenderResults() {
                 const setResultCard = document.createElement('div');
                 setResultCard.className = 'set-result-card';
 
-        // Modificamos el .map para añadir el evento onclick
                 let resultsHTML = set.results.map(res => `
                     <li data-question-id="${res.questionId}" data-question-text="Pregunta #${res.questionOrder}">
                         <strong>Pregunta #${res.questionOrder}:</strong> Quedaste en el puesto <strong>#${res.yourRanking}</strong>. 
@@ -236,7 +231,6 @@ async function fetchAndRenderResults() {
                 setResultCard.innerHTML = `<h3>${set.setName}</h3><ul class="result-list">${resultsHTML}</ul>`;
                 setsList.appendChild(setResultCard);
 
-                // Añadimos los event listeners a los nuevos elementos 'li'
                 setResultCard.querySelectorAll('.result-list li').forEach(item => {
                     item.addEventListener('click', () => {
                         const qId = item.getAttribute('data-question-id');
@@ -247,9 +241,10 @@ async function fetchAndRenderResults() {
             });
             resultsSection.classList.remove('hidden');
         }
-
+        return closedSets; // Devolvemos los sets para que la lógica de admin los pueda usar
     } catch (error) {
         console.error("Error al renderizar los resultados:", error);
+        return []; // En caso de error, devolvemos un array vacío
     }
 }
 
