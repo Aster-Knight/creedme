@@ -41,7 +41,7 @@ exports.handler = async function(event) {
   try {
     const setRef = db.collection('sets').doc(setId);
 
-    // --- MODO 1: Procesar una única pregunta ---
+    // --- MODO 1: Procesar una única pregunta (VERSIÓN PARALELA) ---
     if (questionIndex !== undefined) {
       const qIndex = parseInt(questionIndex, 10);
       
@@ -58,47 +58,57 @@ exports.handler = async function(event) {
       const responsesSnapshot = await db.collection('responses').where('questionId', '==', question.id).get();
       const responsesForQuestion = responsesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      if (responsesForQuestion.length < 1) {
+      if (responsesForQuestion.length === 0) {
         return { statusCode: 200, body: `Pregunta ${qIndex + 1} no tiene respuestas. Saltando.` };
       }
 
-      const rankingPrompt = `
-        Contexto: Estás evaluando discursos para un público de "[${question.secretAudience}]".
-        Tarea: Analiza la siguiente lista de discursos. Tu única salida debe ser un array JSON ordenado. 
-        El array debe contener objetos con la clave "responseId", ordenados desde el mejor discurso (índice 0) hasta el peor, según la perspectiva del público.
-        
-        Discursos:
-        ${responsesForQuestion.map(r => JSON.stringify({ responseId: r.id, text: r.responseText })).join('\n')}
-      `;
-      
       const geminiApiKey = process.env.GEMINI_API_KEY;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${geminiApiKey}`;
-      const payload = { contents: [{ parts: [{ text: rankingPrompt }] }] };
-      const geminiResponse = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      const geminiData = await geminiResponse.json();
 
-      if (!geminiData.candidates || geminiData.candidates.length === 0) {
-        throw new Error(`Gemini no devolvió candidatos para la pregunta ${qIndex + 1}.`);
-      }
+      // Creamos un array de promesas, una por cada respuesta a puntuar
+      const scoringPromises = responsesForQuestion.map(response => {
+          const scoringPrompt = `
+              Contexto: Un discurso se presenta a un público de "[${question.secretAudience}]".
+              Discurso: "${response.responseText}"
+              Tarea: Evalúa la calidad de este discurso para ese público específico. Responde ÚNICAMENTE con un objeto JSON con una sola clave, "score", que sea un número entero del 0 al 1000. Ejemplo: {"score": 850}.
+          `;
+          const payload = { contents: [{ parts: [{ text: scoringPrompt }] }] };
 
-      // Lógica robusta para extraer el JSON
-      const rawResponse = geminiData.candidates[0].content.parts[0].text;
-      const startIndex = rawResponse.indexOf('[');
-      const endIndex = rawResponse.lastIndexOf(']');
+          return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+              .then(res => res.json())
+              .then(geminiData => {
+                  if (geminiData.candidates && geminiData.candidates[0].content && geminiData.candidates[0].content.parts[0]) {
+                      const text = geminiData.candidates[0].content.parts[0].text;
+                      try {
+                          const match = text.match(/{.*}/s); // Extrae cualquier cosa entre { y }
+                          if (match) {
+                              const scoreObj = JSON.parse(match[0]);
+                              return { responseId: response.id, score: scoreObj.score || 0 };
+                          }
+                      } catch (e) { 
+                          console.warn(`No se pudo parsear el score para la respuesta ${response.id}. Texto: ${text}`);
+                      }
+                  }
+                  console.warn(`No se pudo obtener puntuación para la respuesta ${response.id}`);
+                  return { responseId: response.id, score: 0 }; // Devuelve un score por defecto si algo falla
+              })
+              .catch(err => {
+                  console.error(`Error en fetch para la respuesta ${response.id}:`, err);
+                  return { responseId: response.id, score: 0 }; // Asegurarse de devolver un objeto en caso de error de red
+              });
+      });
 
-      if (startIndex === -1 || endIndex === -1) {
-          throw new Error(`Gemini no devolvió un array JSON válido. Respuesta recibida: ${rawResponse}`);
-      }
+      // Ejecutamos todas las llamadas a Gemini EN PARALELO
+      const scoredResponses = await Promise.all(scoringPromises);
 
-      const jsonString = rawResponse.substring(startIndex, endIndex + 1);
-      const rankedIds = JSON.parse(jsonString);
+      // Ordenamos localmente basándonos en la puntuación recibida
+      scoredResponses.sort((a, b) => b.score - a.score);
 
+      // Guardamos el ranking final en la base de datos
       const batch = db.batch();
-      rankedIds.forEach((item, index) => {
-        if (item.responseId) { // Verificación extra
-            const responseRef = db.collection('responses').doc(item.responseId);
-            batch.update(responseRef, { ranking: index + 1 });
-        }
+      scoredResponses.forEach((item, index) => {
+        const responseRef = db.collection('responses').doc(item.responseId);
+        batch.update(responseRef, { ranking: index + 1 });
       });
       await batch.commit();
       
@@ -194,6 +204,7 @@ exports.handler = async function(event) {
 
   } catch (error) {
     console.error("Error en processSet:", error);
+    // En caso de error, intentamos revertir el estado del set a "abierto" para poder reintentar.
     await db.collection('sets').doc(setId).update({ status: 'abierto' }).catch(() => {});
     return { statusCode: 500, body: `Error procesando el set: ${error.message}` };
   }
