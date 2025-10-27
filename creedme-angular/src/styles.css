@@ -1,0 +1,26 @@
+:root {
+  --bs-body-bg: #f8f9fa;
+  --bs-body-color: #212529;
+  --bs-border-color: #dee2e6;
+  --card-bg: #fff;
+}
+
+body.dark-mode {
+  --bs-body-bg: #212529;
+  --bs-body-color: #f8f9fa;
+  --bs-border-color: #495057;
+  --card-bg: #343a40;
+}
+
+/* Aplicar transiciones suaves */
+body, .card, .modal-content, .table {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.card, .modal-content, .table {
+  background-color: var(--card-bg) !important;
+}
+
+.table {
+  border-color: var(--bs-border-color);
+}
