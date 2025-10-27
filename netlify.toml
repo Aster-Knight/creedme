@@ -1,11 +1,20 @@
 # netlify.toml
 
 [build]
+  # Directorio donde se encuentran las Netlify Functions
   functions = "netlify/functions"
+  # Comando para compilar el proyecto de Angular
+  command = "ng build --prod"
+  # Directorio de salida después de la compilación
+  publish = "creedme-angular/dist/creedme-angular/browser"
 
-# AÑADE ESTE NUEVO BLOQUE
 [functions]
   # Aumenta el tiempo de espera para funciones específicas
   [functions."processSet"]
-    # El máximo en el plan gratuito es 26 segundos
     timeout = 26
+
+# Redirección para que las Single Page Applications (SPA) como Angular funcionen correctamente
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
