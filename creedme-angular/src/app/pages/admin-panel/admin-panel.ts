@@ -13,7 +13,7 @@ interface UserDetails {
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
-  imports: [CommonModule, EloChangepipe],
+  imports: [CommonModule, EloChangePipe],
   templateUrl: './admin-panel.html',
   styleUrls: ['./admin-panel.css']
 })
