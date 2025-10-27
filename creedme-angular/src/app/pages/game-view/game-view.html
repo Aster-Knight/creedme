@@ -1,0 +1,68 @@
+<div *ngIf="!isLoading && gameState; else loadingOrError">
+  <h2 class="mb-4">{{ gameState.setName }}</h2>
+  
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col" *ngFor="let q of gameState.questions">
+      <div class="card h-100" (click)="openResponseModal(q)" [ngClass]="{'border-success': q.hasResponded}">
+        <div class="card-body">
+          <h5 class="card-title">Pregunta #{{ q.order }}</h5>
+          <p class="card-text">
+            <span [ngClass]="{'text-success': q.hasResponded, 'text-muted': !q.hasResponded}">
+              {{ q.hasResponded ? '✔ Respondido' : 'Pendiente de respuesta.' }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingOrError>
+  <div *ngIf="error; else loadingSpinner" class="alert alert-danger">{{ error }}</div>
+  <ng-template #loadingSpinner>
+    <div class="d-flex justify-content-center p-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  </ng-template>
+</ng-template>
+
+<!-- Modal de Respuesta con Bootstrap -->
+<div class="modal fade" [class.show]="isModalOpen" [style.display]="isModalOpen ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ currentQuestion?.questionText }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <textarea 
+          class="form-control"
+          rows="4"
+          placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" 
+          maxlength="280"
+          [(ngModel)]="responseText"
+          [disabled]="currentQuestion?.hasResponded || isSubmitting">
+        </textarea>
+        
+        <div class="alert alert-info mt-3" *ngIf="currentQuestion?.hasResponded">
+          <b>Reacción del público:</b> "{{ currentQuestion?.geminiFeedback }}"
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cerrar</button>
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          *ngIf="!currentQuestion?.hasResponded"
+          (click)="handleResponseSubmit()"
+          [disabled]="isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          {{ isSubmitting ? ' Procesando...' : 'Enviar Respuesta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade" [class.show]="isModalOpen" *ngIf="isModalOpen"></div>
