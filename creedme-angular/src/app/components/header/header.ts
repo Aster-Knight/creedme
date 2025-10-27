@@ -1,3 +1,8 @@
+import { RouterModule, Router } from '@angular/router'; // Para el routing
+import { Observable } from 'rxjs'; // Para los observables ($)
+import { AuthService } from '../../services/auth.service'; // Para el servicio de autenticación
+import { UserDataService, UserProfile } from '../../services/user-data.service'; // Para los datos de usuario
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../services/theme.service';
