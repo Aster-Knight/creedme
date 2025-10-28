@@ -1,20 +1,24 @@
-# netlify.toml (Versión Final Definitiva)
+# netlify.toml (Versión Final Definitiva para Mono-Repositorio)
 
+# --- Configuración de Construcción Global ---
 [build]
-  # 1. Base: Le decimos a Netlify que este es nuestro directorio de trabajo principal.
-  # Netlify entrará aquí y ejecutará 'npm install' automáticamente.
-  base = "creedme-angular"
-
-  # 2. Comando: Ejecutamos el script "build" del package.json de Angular.
-  # Esto usará la versión local de 'ng' que se acaba de instalar en node_modules.
-  command = "npm run build"
-
-  # 3. Publicación: La ruta es ahora RELATIVA a la 'base'.
-  # El resultado de la compilación estará en 'dist/creedme-angular/'.
-  publish = "dist/creedme-angular/browser"
-
-  # 4. Funciones: Esta ruta debe ser desde la RAÍZ del repositorio.
+  # No definimos un 'command' global.
+  # El directorio de publicación global es el de Angular.
+  publish = "creedme-angular/dist/creedme-angular/browser"
+  # El directorio de funciones global.
   functions = "netlify/functions"
+
+# --- Contextos de Despliegue ---
+# Esta sección se aplica a todos los despliegues (producción, previews, etc.)
+# Le decimos a Netlify que, ANTES de construir, debe ejecutar estos comandos.
+[context.production]
+  command = "cd creedme-angular && npm install && ng build"
+
+[context.deploy-preview]
+  command = "cd creedme-angular && npm install && ng build"
+
+[context.branch-deploy]
+  command = "cd creedme-angular && npm install && ng build"
 
 # --- Configuración de Funciones ---
 [functions]
