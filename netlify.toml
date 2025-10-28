@@ -1,34 +1,23 @@
-# netlify.toml
+# netlify.toml (Versión Final y Correcta)
 
-# --- Configuración de Construcción Principal ---
+# --- Configuración de Construcción Global ---
 [build]
-  # Comando para construir la aplicación de Angular.
-  # Se ejecuta desde el directorio 'base' que se especifica abajo.
-  command = "ng build"
+  # Comando que se ejecuta desde la raíz del repositorio.
+  # Le decimos que entre a la carpeta de angular Y LUEGO ejecute ng build.
+  command = "cd creedme-angular && ng build"
 
-  # Directorio donde Angular deja los archivos compilados (relativo a la raíz del proyecto).
-  publish = "creedme-angular/dist/creedme-angular/browser"
-
-  # Directorio de las funciones (relativo a la raíz del repositorio).
+  # Directorio de las funciones (desde la raíz).
   functions = "netlify/functions"
 
-# --- Contexto de Construcción para el Frontend ---
-# Le decimos a Netlify que entre en esta carpeta antes de ejecutar el 'command'.
-[context.production]
-  base = "creedme-angular"
-
-[context.deploy-preview]
-  base = "creedme-angular"
-
-[context.branch-deploy]
-  base = "creedme-angular"
+  # Directorio de publicación de los archivos compilados (desde la raíz).
+  publish = "creedme-angular/dist/creedme-angular/browser"
 
 # --- Configuración de Funciones ---
 [functions]
   [functions."processSet"]
     timeout = 26
 
-# --- Redirección para Single Page Apps (SPA) ---
+# --- Redirección para la SPA de Angular ---
 [[redirects]]
   from = "/*"
   to = "/index.html"
