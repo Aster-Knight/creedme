@@ -1,20 +1,27 @@
 # netlify.toml
 
-# --- Configuración de Construcción ---
+# --- Configuración de Construcción Principal ---
 [build]
-  # Directorio base para la construcción del frontend.
-  # Netlify cambiará a este directorio antes de ejecutar el comando de construcción.
-  base = "creedme-angular"
-
   # Comando para construir la aplicación de Angular.
-  # Netlify ahora ejecutará `npm install` y luego `ng build` dentro de la carpeta 'creedme-angular'.
+  # Se ejecuta desde el directorio 'base' que se especifica abajo.
   command = "ng build"
 
-  # Directorio donde Angular deja los archivos compilados (relativo al directorio 'base').
-  publish = "dist/creedme-angular/browser"
+  # Directorio donde Angular deja los archivos compilados (relativo a la raíz del proyecto).
+  publish = "creedme-angular/dist/creedme-angular/browser"
 
   # Directorio de las funciones (relativo a la raíz del repositorio).
   functions = "netlify/functions"
+
+# --- Contexto de Construcción para el Frontend ---
+# Le decimos a Netlify que entre en esta carpeta antes de ejecutar el 'command'.
+[context.production]
+  base = "creedme-angular"
+
+[context.deploy-preview]
+  base = "creedme-angular"
+
+[context.branch-deploy]
+  base = "creedme-angular"
 
 # --- Configuración de Funciones ---
 [functions]
@@ -22,8 +29,6 @@
     timeout = 26
 
 # --- Redirección para Single Page Apps (SPA) ---
-# Esto asegura que si el usuario refresca la página en una ruta como /juego,
-# no reciba un 404, sino que se le sirva el index.html de Angular.
 [[redirects]]
   from = "/*"
   to = "/index.html"
