@@ -1,16 +1,20 @@
-# netlify.toml (Versión Final, Simplificada y Robusta)
+# netlify.toml (Versión Final Definitiva)
 
 [build]
-  # 1. Comando: Se ejecuta desde la raíz. Entra a la carpeta de Angular,
-  #    instala sus dependencias y luego construye el proyecto.
-  command = "cd creedme-angular && npm install && ng build"
+  # 1. Base: Le decimos a Netlify que este es nuestro directorio de trabajo principal.
+  # Netlify entrará aquí y ejecutará 'npm install' automáticamente.
+  base = "creedme-angular"
 
-  # 2. Funciones: Ruta a las funciones, desde la raíz.
+  # 2. Comando: Ejecutamos el script "build" del package.json de Angular.
+  # Esto usará la versión local de 'ng' que se acaba de instalar en node_modules.
+  command = "npm run build"
+
+  # 3. Publicación: La ruta es ahora RELATIVA a la 'base'.
+  # El resultado de la compilación estará en 'dist/creedme-angular/'.
+  publish = "dist/creedme-angular/browser"
+
+  # 4. Funciones: Esta ruta debe ser desde la RAÍZ del repositorio.
   functions = "netlify/functions"
-
-  # 3. Publicación: Ruta a los archivos compilados, desde la raíz.
-  #    Esta es la corrección clave. Apunta a la carpeta que el log nos dice que se está creando.
-  publish = "creedme-angular/dist/creedme-angular/"
 
 # --- Configuración de Funciones ---
 [functions]
