@@ -4,110 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CreedMe - Capacitación Inteligente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-bs-spy="scroll" data-bs-target="#navbar-main">
 
-    <nav class="navbar">
-        <a href="#hero" class="logo-container"> <!-- Cambiado de "#" a "#hero" -->
-            <img src="creedme-logo.png" alt="CreedMe Logo" class="logo-img">
-            <div class="logo-text">CreedMe.</div>
-        </a>
-        <div class="nav-links">
-            <a href="#features">El Método</a>
-            <a href="#ai-engine">Motor de IA</a>
-            <a href="#platform">La Plataforma</a>
-            <a href="#contact">Contacto</a>
-            <a href="https://creedme.netlify.app/" target="_blank" class="nav-button">Probar Demo</a>
+    <nav id="navbar-main" class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand logo-container" href="#hero">
+                <img src="creedme-logo.png" alt="CreedMe Logo" class="logo-img">
+                <span class="logo-text">CreedMe.</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">El Método</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#showcase">Showcase</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contacto</a></li>
+                    <li class="nav-item ms-lg-3"><a href="https://creedme.netlify.app/" target="_blank" class="btn btn-primary rounded-pill">Probar Demo</a></li>
+                </ul>
+            </div>
         </div>
     </nav>
 
-    <section id="hero" class="section">
-        <div class="logo-main">CreedMe.</div>
-        <h1 class="motto">No los sustituye, los mejora.</h1>
-        <p class="subtitle markdown">
-            Una plataforma de capacitación de personal basada en el sistema de **Práctica Deliberada** e impulsada por un revolucionario motor de **Inteligencia Artificial**.
-        </p>
-        <a href="https://creedme.netlify.app/" target="_blank" class="cta-button">Accede a la Demo Funcional</a>
+    <section id="hero" class="d-flex align-items-center text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="display-2 fw-bold text-white logo-main scroll-reveal">CreedMe.</h1>
+                    <h2 class="motto fw-light scroll-reveal">No los sustituye, los mejora.</h2>
+                    <p class="lead subtitle markdown scroll-reveal">
+                        Una plataforma de capacitación de personal basada en el sistema de **Práctica Deliberada** e impulsada por un revolucionario motor de **Inteligencia Artificial**.
+                    </p>
+                    <a href="https://creedme.netlify.app/" target="_blank" class="btn btn-primary btn-lg rounded-pill px-5 py-3 mt-4 cta-button scroll-reveal">Accede a la Demo Funcional</a>
+                </div>
+            </div>
+        </div>
     </section>
 
     <section id="features" class="section">
-        <h2>El Método: Maestría a través de la Práctica Deliberada</h2>
-        <p class="subtitle">
-            No basta con saber la teoría. La verdadera habilidad se forja en la práctica. Nuestra metodología se basa en los cuatro pilares científicamente probados para alcanzar la maestría.
-        </p>
-        <!-- La estructura ahora usa las tarjetas originales, que funcionarán con la animación -->
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="icon">🎯</div>
-                <h3>1. Ambiente Válido</h3>
-                <p>Simulamos escenarios realistas con reglas claras y reacciones consistentes. Sus equipos no memorizan, aprenden a identificar patrones y a predecir resultados, desarrollando un juicio experto.</p>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="scroll-reveal">El Método: Maestría a través de la Práctica Deliberada</h2>
+                    <p class="lead subtitle scroll-reveal">Nuestra metodología se basa en los cuatro pilares científicamente probados para alcanzar la maestría.</p>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="icon">🔁</div>
-                <h3>2. Repetición Constante</h3>
-                <p>A través de sets de desafíos periódicos, los usuarios practican continuamente, reforzando el conocimiento y convirtiendo la habilidad en un segundo instinto.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon">⚡</div>
-                <h3>3. Retroalimentación Inmediata</h3>
-                <p>El momento crítico del aprendizaje. Tras cada intento, nuestra IA proporciona feedback instantáneo y contextualizado, permitiendo al usuario saber al momento si ha acertado, por qué, y cómo puede mejorar.</p>
-            </div>
-            <div class="feature-card">
-                <div class="icon">🧗</div>
-                <h3>4. Práctica Competitiva</h3>
-                <p>Nuestro sistema de ranking Elo empuja a cada individuo fuera de su zona de confort. Al competir, los usuarios se esfuerzan más, aprenden de los mejores y se motivan para alcanzar el siguiente nivel de habilidad.</p>
+            <div class="row g-4">
             </div>
         </div>
     </section>
 
-    <section id="ai-engine" class="section">
-        <div class="detail-section">
-            <div class="text-content">
-                <h2>El Motor de IA Adaptativo</h2>
-                <p class="subtitle">Impulsado por Google Gemini.</p>
-                <p>El corazón de CreedMe es un sistema de IA que actúa como un simulador de audiencias infinitas. No ofrecemos una evaluación genérica; configuramos la IA para que piense y reaccione como el público objetivo que usted necesita: clientes insatisfechos, inversores escépticos, nuevos reclutas o comités técnicos.</p>
-                <p>Esta capacidad de adaptación permite que la práctica sea siempre relevante y esté perfectamente alineada con los desafíos reales que enfrenta su equipo.</p>
-            </div>
-            <div class="image-content">
-                <img src="placeholder1.jpg" alt="Ilustración abstracta de una red neuronal o cerebro digital">
+    <section id="showcase" class="section bg-light">
+        <div class="container">
+            <div id="showcaseCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#showcaseCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6 text-start"><img src="placeholder1.jpg" class="d-block w-100 rounded shadow-lg" alt="Ilustración abstracta de una red neuronal o cerebro digital"></div>
+                            <div class="col-lg-6 text-start p-5"><h3>El Motor de IA Adaptativo</h3><p>Impulsado por Google Gemini, nuestro motor simula audiencias infinitas (clientes, inversores, etc.) para que la práctica sea siempre relevante.</p></div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6 text-start"><img src="placeholder2.jpg" class="d-block w-100 rounded shadow-lg" alt="Iconos representando diferentes industrias o habilidades"></div>
+                            <div class="col-lg-6 text-start p-5"><h3>Plataforma a su Medida</h3><p>Desde atención al cliente hasta liderazgo, adaptamos los desafíos a las habilidades que su organización necesita fortalecer.</p></div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6 text-start"><img src="placeholder3.jpg" class="d-block w-100 rounded shadow-lg" alt="Gráfico ascendente representando el ranking Elo"></div>
+                            <div class="col-lg-6 text-start p-5"><h3>Competición y Ranking Elo</h3><p>Nuestro sistema de puntuación, similar al del ajedrez, mide el progreso y motiva a los usuarios a superarse constantemente.</p></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
-
-    <section id="platform" class="section">
-        <div class="detail-section">
-            <div class="text-content">
-                <h2>Una Plataforma de Capacitación a su Medida</h2>
-                <p class="subtitle">Desde atención al cliente hasta liderazgo ejecutivo.</p>
-                <p>Imagine a su equipo de ventas practicando cómo rebatir objeciones contra una IA que actúa como un cliente difícil. O a sus nuevos gerentes aprendiendo a comunicar decisiones impopulares ante un "equipo" simulado y escéptico.</p>
-                <p>CreedMe es adaptable. Creamos sets de desafíos específicos para las habilidades que su organización necesita fortalecer, convirtiendo la formación en una experiencia medible, continua y directamente aplicable a los resultados de su negocio.</p>
-            </div>
-            <div class="image-content">
-                <img src="placeholder2.jpg" alt="Iconos representando diferentes industrias o habilidades como ventas, liderazgo y tecnología">
-            </div>
+    
+    <section id="contact" class="section contact-section d-flex flex-column align-items-center justify-content-center text-center">
+        <div class="container scroll-reveal">
+            <h2 class="text-white">Transforme su Capacitación.</h2>
+            <p class="lead subtitle">Descubra cómo la práctica deliberada impulsada por IA puede llevar a su equipo al siguiente nivel.</p>
+            <button type="button" class="btn btn-light btn-lg rounded-pill px-5 py-3 mt-4 cta-button" data-bs-toggle="modal" data-bs-target="#contactModal">
+                Solicita una Demo
+            </button>
         </div>
     </section>
 
-    <section id="contact" class="section">
-        <h2>Transforme su Capacitación.</h2>
-        <p class="subtitle">Descubra cómo la práctica deliberada impulsada por IA puede llevar a su equipo al siguiente nivel de maestría.</p>
-        <a href="mailto:josue.aguilar@ufm.edu?subject=Demo de CreedMe" class="cta-button" style="background-color: var(--white); color: var(--primary-color); box-shadow: none;">Solicita una Demo Personalizada</a>
-    </section>
-
-    <footer>
-        <div class="footer-links">
-            <a href="https://github.com/Aster-Knight/creedme" target="_blank">GitHub del Proyecto</a>
+    <footer class="py-4">
+        <div class="container text-center">
+            <div class="footer-links mb-3">
+                <a href="https://github.com/Aster-Knight/creedme" target="_blank">GitHub del Proyecto</a>
+            </div>
+            <div class="signature mb-2">
+                <span>Desarrollado por</span>
+                <img src="aster-knight-logo.png" alt="Aster-Knight Logo" class="signature-logo">
+                <a href="https://github.com/Aster-Knight" target="_blank" class="signature-name">Aster-Knight</a>
+            </div>
+            <p class="text-muted small mb-0">&copy; 2025 CreedMe. Todos los derechos reservados.</p>
         </div>
-        <div class="signature">
-            <span>Desarrollado por</span>
-            <img src="aster-knight-logo.png" alt="Aster-Knight Logo" class="signature-logo">
-            <a href="https://github.com/Aster-Knight" target="_blank" class="signature-name">Aster-Knight</a>
-        </div>
-        <p>&copy; 2025 CreedMe. Todos los derechos reservados.</p>
-        <p>Contacto: josue.aguilar@ufm.edu</p>
     </footer>
 
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contactModalLabel">Contacto y Demo Personalizada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Gracias por su interés en CreedMe. Para agendar una demostración personalizada y discutir cómo podemos adaptarnos a sus necesidades, por favor contáctenos a través de:</p>
+                    <p><strong>Correo Electrónico:</strong><br><a href="mailto:josue.aguilar@ufm.edu">josue.aguilar@ufm.edu</a></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a href="mailto:josue.aguilar@ufm.edu?subject=Demo de CreedMe" class="btn btn-primary">Enviar Correo</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
