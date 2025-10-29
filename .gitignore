@@ -1,16 +1,21 @@
-# Dependencias de Node
-/node_modules
+# Dependencies
+node_modules/
+.venv/
 
-# Archivos de entorno (buenas prácticas por si lo usas en el futuro)
+# Angular
+/creedme-angular/dist
+/creedme-angular/.angular
+
+# Environment files
 .env
 .env.local
 
-# Archivos del sistema operativo
+# OS files
 .DS_Store
 Thumbs.db
 
 # Local Netlify folder
 .netlify
 
-# firebase key
+# Firebase key
 firebase-service-account.json
