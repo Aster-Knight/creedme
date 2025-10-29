@@ -1,0 +1,43 @@
+<h3>Panel de Administrador</h3>
+<button 
+  (click)="processActiveSet()"
+  [disabled]="isProcessing">
+  {{ isProcessing ? processingStatus : 'Finalizar Set Actual y Calcular Puntos' }}
+</button>
+
+<div id="admin-set-details">
+  <div *ngFor="let set of closedSets">
+    <div *ngIf="setDetails.has(set.setId)">
+      <h4>Evolución de Elo para {{ set.setName }}</h4>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Jugador</th>
+            <th>Elo Inicial</th>
+            <th *ngFor="let q of setDetails.get(set.setId)?.questions">Preg. #{{ q.order }}</th>
+            <th>Elo Final</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of setDetails.get(set.setId)?.users">
+            <td>
+              <span [style.color]="getPlayerColor(user.id)" style="font-weight: bold;">
+                {{ setDetails.get(set.setId)?.userNames.get(user.id) }}
+              </span>
+            </td>
+            <td>{{ setDetails.get(set.setId)?.userEvolution.get(user.id)[0] | number:'1.0-0' }}</td>
+            <td *ngFor="let elo of setDetails.get(set.setId)?.userEvolution.get(user.id).slice(1); let i = index">
+              <span [innerHTML]="(elo - setDetails.get(set.setId)?.userEvolution.get(user.id)[i]) | eloChange"></span>
+            </td>
+            <td>
+              <strong>
+                {{ setDetails.get(set.setId)?.userEvolution.get(user.id)[setDetails.get(set.setId)?.userEvolution.get(user.id).length - 1] | number:'1.0-0' }}
+              </strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!setDetails.has(set.setId)">Cargando detalles para {{ set.setName }}...</div>
+  </div>
+</div>

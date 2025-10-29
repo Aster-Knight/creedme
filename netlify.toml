@@ -1,11 +1,32 @@
-# netlify.toml
+# netlify.toml (Versión Final Definitiva para Mono-Repositorio)
 
+# --- Configuración de Construcción Global ---
 [build]
+  # No definimos un 'command' global.
+  # El directorio de publicación global es el de Angular.
+  publish = "creedme-angular/dist/creedme-angular/browser"
+  # El directorio de funciones global.
   functions = "netlify/functions"
 
-# AÑADE ESTE NUEVO BLOQUE
+# --- Contextos de Despliegue ---
+# Esta sección se aplica a todos los despliegues (producción, previews, etc.)
+# Le decimos a Netlify que, ANTES de construir, debe ejecutar estos comandos.
+[context.production]
+  command = "cd creedme-angular && npm install && ng build"
+
+[context.deploy-preview]
+  command = "cd creedme-angular && npm install && ng build"
+
+[context.branch-deploy]
+  command = "cd creedme-angular && npm install && ng build"
+
+# --- Configuración de Funciones ---
 [functions]
-  # Aumenta el tiempo de espera para funciones específicas
   [functions."processSet"]
-    # El máximo en el plan gratuito es 26 segundos
     timeout = 26
+
+# --- Redirección para la SPA de Angular ---
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

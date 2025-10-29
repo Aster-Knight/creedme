@@ -14,3 +14,7 @@ Thumbs.db
 
 # firebase key
 firebase-service-account.json
+
+# Angular build output and cache
+/creedme-angular/dist/
+/creedme-angular/.angular/

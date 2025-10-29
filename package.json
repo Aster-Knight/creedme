@@ -1,17 +1,13 @@
 {
-  "name": "creedme",
+  "name": "creedme-monorepo",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+"scripts": {
+  "build": "npm install && cd creedme-angular && npm install && ng build",
+  "test": "ng test"
+},
   "dependencies": {
-    "firebase-admin": "^13.5.0",
+    "@google/generative-ai": "^0.1.3",
+    "firebase-admin": "^12.0.0",
     "node-fetch": "^2.7.0"
   }
 }
