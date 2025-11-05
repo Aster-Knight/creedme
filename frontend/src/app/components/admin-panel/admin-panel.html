@@ -1,0 +1,8 @@
+<section id="admin-panel">
+  <h3>Panel de Administrador</h3>
+  <button (click)="processSet()" [disabled]="isProcessing">
+    {{ isProcessing ? processingStatus : 'Finalizar Set Actual y Calcular Puntos' }}
+  </button>
+  <!-- La tabla de evolución de Elo se podría añadir aquí en el futuro -->
+  <div id="admin-set-details"></div>
+</section>

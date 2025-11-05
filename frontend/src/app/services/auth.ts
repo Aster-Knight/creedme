@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, getIdTokenResult } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { Observable } from 'rxjs';
 import { auth, firestore } from '../firebase-initializer'; // Ruta corregida
@@ -14,16 +14,27 @@ export class AuthService {
   readonly authState$: Observable<User | null>;
 
   constructor() {
-    // Creamos el observable manualmente usando onAuthStateChanged
     this.authState$ = new Observable(subscriber => {
       const unsubscribe = onAuthStateChanged(this.auth, 
         user => subscriber.next(user),
         error => subscriber.error(error),
         () => subscriber.complete()
       );
-      // Cuando se cancela la suscripción, se limpia el listener de Firebase
       return unsubscribe;
     });
+  }
+
+  async getToken(): Promise<string | null> {
+    const user = this.auth.currentUser;
+    if (!user) return null;
+    return await user.getIdToken();
+  }
+
+  async isAdmin(): Promise<boolean> {
+    const user = this.auth.currentUser;
+    if (!user) return false;
+    const tokenResult = await getIdTokenResult(user, true); // Forzar recarga del token
+    return tokenResult.claims['admin'] === true;
   }
 
   async register(email: string, password: string): Promise<User> {

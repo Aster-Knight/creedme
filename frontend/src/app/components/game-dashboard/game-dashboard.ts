@@ -2,12 +2,13 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from '@angular/fire/auth';
 import { ApiService, GameState } from '../../services/api';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { ResponseModalComponent } from '../response-modal/response-modal';
 
 @Component({
   selector: 'app-game-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ResponseModalComponent],
   templateUrl: './game-dashboard.html',
   styleUrls: ['./game-dashboard.css']
 })
@@ -16,11 +17,30 @@ export class GameDashboardComponent implements OnInit {
   
   private apiService = inject(ApiService);
 
-  // Observable para el estado del juego
-  gameState$!: Observable<GameState>;
+  gameState$: Observable<GameState> | undefined;
+  localGameState: GameState | undefined;
+
+  selectedQuestion: any = null;
 
   ngOnInit(): void {
-    // Al iniciar el componente, llamamos al servicio para obtener el estado del juego
-    this.gameState$ = this.apiService.getSetState(this.user.uid);
+    this.loadGameState();
+  }
+
+  loadGameState() {
+    this.gameState$ = this.apiService.getSetState(this.user.uid).pipe(
+      tap(state => this.localGameState = state) // Guardamos una copia local
+    );
+  }
+
+  openModal(question: any) {
+    this.selectedQuestion = question;
+  }
+
+  handleModalClose(isSuccess: boolean) {
+    this.selectedQuestion = null;
+    // Si la respuesta fue exitosa, recargamos el estado del juego para reflejar los cambios
+    if (isSuccess) {
+      this.loadGameState();
+    }
   }
 }

@@ -7,9 +7,19 @@
     </div>
   </header>
 
+  <!-- Panel de Admin (se muestra si isAdmin$ es true) -->
+  <app-admin-panel 
+    *ngIf="isAdmin$ | async"
+    [localGameState]="(gameDashboard.localGameState)">
+  </app-admin-panel>
+
   <main>
-    <app-game-dashboard [user]="user"></app-game-dashboard>
+    <!-- Le damos un nombre de referencia #gameDashboard para poder acceder a sus propiedades -->
+    <app-game-dashboard #gameDashboard [user]="user"></app-game-dashboard>
   </main>
+
+  <app-results-dashboard [user]="user"></app-results-dashboard>
+  <app-global-leaderboard></app-global-leaderboard>
 
 </ng-container>
 
