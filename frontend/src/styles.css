@@ -19,7 +19,7 @@ header {
 h1 { color: #2c3e50; }
 #user-info { text-align: right; }
 
-#questions-grid {
+#questions-grid, .questions-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
@@ -116,42 +116,46 @@ button {
 
 /* Clases de utilidad */
 .hidden { display: none !important; }
-#auth-container {
+
+/* Estilos para el componente de Login */
+app-login .login-container {
     text-align: center;
     padding: 40px 20px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    max-width: 400px;
+    margin: 40px auto;
 }
 
-#auth-container button {
+app-login button {
     background-color: #2ecc71;
     color: white;
     font-size: 1.1em;
+    margin: 5px;
 }
 
-#auth-modal input {
+app-login input {
     display: block;
-    width: 100%;
+    width: calc(100% - 20px);
     padding: 10px;
-    margin-bottom: 10px;
+    margin: 0 auto 10px auto;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-#auth-error {
+app-login .error-message {
     color: #e74c3c;
     margin: 10px 0;
     font-size: 0.9em;
 }
+
 
 #results-section {
     margin-top: 40px;
     padding-top: 20px;
     border-top: 1px solid #ddd;
 }
-
-/* style.css (AÑADIR ESTO AL FINAL) */
 
 .set-result-card {
     background-color: #fff;
@@ -181,8 +185,6 @@ button {
     border-bottom: none;
 }
 
-/* style.css (AÑADIR AL FINAL) */
-
 #global-leaderboard-section {
     margin-top: 40px;
 }
@@ -208,7 +210,6 @@ button {
     border-bottom: none;
 }
 
-/* Hacer clicables los resultados */
 .result-list li {
     cursor: pointer;
 }
@@ -218,7 +219,6 @@ button {
     font-size: 0.9em;
 }
 
-/* Modal grande para rankings */
 .modal-lg {
     max-width: 800px;
 }
@@ -230,7 +230,6 @@ button {
     margin-bottom: 10px;
 }
 
-/* Estilos para los grupos de preguntas */
 .question-card.group-1 { border-left: 5px solid #3498db; } /* Azul */
 .question-card.group-2 { border-left: 5px solid #e67e22; } /* Naranja */
 .question-card.group-3 { border-left: 5px solid #2ecc71; } /* Verde */
@@ -239,7 +238,6 @@ button {
 .question-card.answered.group-2 { background-color: #fbeee4; }
 .question-card.answered.group-3 { background-color: #eafaf1; }
 
-/* style.css (AÑADIR AL FINAL) */
 .admin-table {
     width: 100%;
     margin-top: 15px;

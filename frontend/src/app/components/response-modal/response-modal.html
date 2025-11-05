@@ -1,0 +1,27 @@
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>{{ question.questionText }}</h3>
+    
+    <textarea 
+      [(ngModel)]="responseText" 
+      placeholder="Escribe tu discurso aquí... (máx 280 caracteres)" 
+      maxlength="280"
+      [disabled]="isSubmitted || isLoading">
+    </textarea>
+
+    <div *ngIf="feedback" class="modal-feedback">
+      <p><strong>Reacción del público:</strong></p>
+      <p>"{{ feedback }}"</p>
+    </div>
+
+    <div class="modal-actions">
+      <button (click)="closeModal()">Cerrar</button>
+      <button 
+        *ngIf="!isSubmitted"
+        (click)="submitResponse()" 
+        [disabled]="isLoading">
+        {{ isLoading ? 'Procesando...' : 'Enviar Respuesta' }}
+      </button>
+    </div>
+  </div>
+</div>

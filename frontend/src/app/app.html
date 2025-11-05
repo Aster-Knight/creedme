@@ -1,0 +1,28 @@
+<ng-container *ngIf="user$ | async as user; else showLogin">
+  <header>
+    <h1>Tenedme. Creedme.</h1>
+    <div id="user-info">
+      <span>Jugador: <b>{{ user.email }}</b></span>
+      <button (click)="logout()">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <!-- Panel de Admin (se muestra si isAdmin$ es true) -->
+  <app-admin-panel 
+    *ngIf="isAdmin$ | async"
+    [localGameState]="(gameDashboard.localGameState)">
+  </app-admin-panel>
+
+  <main>
+    <!-- Le damos un nombre de referencia #gameDashboard para poder acceder a sus propiedades -->
+    <app-game-dashboard #gameDashboard [user]="user"></app-game-dashboard>
+  </main>
+
+  <app-results-dashboard [user]="user"></app-results-dashboard>
+  <app-global-leaderboard></app-global-leaderboard>
+
+</ng-container>
+
+<ng-template #showLogin>
+  <app-login></app-login>
+</ng-template>

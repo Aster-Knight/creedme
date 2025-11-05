@@ -1,0 +1,21 @@
+<section id="global-leaderboard-section" *ngIf="(leaderboard$ | async) as leaderboard">
+  <div *ngIf="leaderboard.length > 0">
+    <h2>Ranking Global de Jugadores</h2>
+    <table id="global-leaderboard-table">
+      <thead>
+        <tr>
+          <th>Puesto</th>
+          <th>Jugador</th>
+          <th>Rating Elo</th>
+        </tr>
+      </thead>
+      <tbody id="global-leaderboard-body">
+        <tr *ngFor="let player of leaderboard; let i = index">
+          <td>#{{ i + 1 }}</td>
+          <td>{{ player.username }}</td>
+          <td>{{ player.eloRating }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+<section id="results-section" *ngIf="(results$ | async) as closedSets">
+  <div *ngIf="closedSets.length > 0">
+    <h2>Resultados de Sets Anteriores</h2>
+    <div id="sets-list">
+      <div *ngFor="let set of closedSets" class="set-result-card">
+        <h3>{{ set.setName }}</h3>
+        <ul class="result-list">
+          <li *ngFor="let res of set.results" (click)="showQuestionLeaderboard(res.questionId, 'Pregunta #' + res.questionOrder)">
+            <strong>Pregunta #{{ res.questionOrder }}:</strong> Quedaste en el puesto <strong>#{{ res.yourRanking }}</strong>. 
+            <br>
+            <small>El público secreto era: <em>{{ res.secretAudience }}</em> <a>(Ver ranking completo)</a></small>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

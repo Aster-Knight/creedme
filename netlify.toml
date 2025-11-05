@@ -1,11 +1,18 @@
 # netlify.toml
 
 [build]
+  # Comando a ejecutar desde la raíz del proyecto.
+  # Netlify ejecutará 'npm install' en la raíz, por lo que 'ng' estará disponible.
+  command = "npm run build"
+  
+  # Directorio donde Angular deja los archivos compilados.
+  publish = "frontend/dist/creedme-angular/browser"
+  
+  # Directorio donde están las funciones serverless.
   functions = "netlify/functions"
 
-# AÑADE ESTE NUEVO BLOQUE
+# Aumenta el tiempo de espera para funciones específicas
 [functions]
-  # Aumenta el tiempo de espera para funciones específicas
   [functions."processSet"]
     # El máximo en el plan gratuito es 26 segundos
     timeout = 26

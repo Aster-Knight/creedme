@@ -3,11 +3,10 @@
 const admin = require('firebase-admin');
 
 // Decodificamos la clave de servicio desde la variable de entorno de Netlify
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-if (!serviceAccountBase64) {
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+if (!serviceAccount) {
   throw new Error("La variable de entorno de Firebase no está definida.");
 }
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
 
 // Inicializamos la app de Firebase SOLO SI no ha sido inicializada antes.
 // Esto es importante en entornos serverless para evitar errores en ejecuciones "cálidas".

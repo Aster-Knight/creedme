@@ -3,11 +3,10 @@ const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
 // --- INICIALIZACIÓN DE FIREBASE ---
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-if (!serviceAccountBase64) {
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+if (!serviceAccount) {
   throw new Error("La variable de entorno de Firebase no está definida.");
 }
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
 
 if (!admin.apps.length) {
   admin.initializeApp({

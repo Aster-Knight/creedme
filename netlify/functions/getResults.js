@@ -2,13 +2,10 @@
 
 const admin = require('firebase-admin');
 
-// --- INICIALIZACIÓN DE FIREBASE (¡AHORA COMPLETA Y CORRECTA!) ---
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-if (!serviceAccountBase64) {
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+if (!serviceAccount) {
   throw new Error("La variable de entorno de Firebase no está definida.");
 }
-// --- LÍNEA QUE FALTABA ---
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
 
 // Ahora la siguiente línea funcionará porque 'serviceAccount' sí existe
 if (!admin.apps.length) {
