@@ -1,10 +1,10 @@
 // netlify/functions/getSetDetails.js
 const admin = require('firebase-admin');
 
-// --- INICIALIZACIÓN DE FIREBASE ---
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-if (!serviceAccountBase64) { throw new Error("..."); }
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+if (!serviceAccount) {
+  throw new Error("La variable de entorno de Firebase no está definida.");
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });

@@ -3,14 +3,12 @@
     <h1>Tenedme. Creedme.</h1>
     <div id="user-info">
       <span>Jugador: <b>{{ user.email }}</b></span>
-      <!-- El rating se cargará en un componente separado -->
       <button (click)="logout()">Cerrar Sesión</button>
     </div>
   </header>
 
-  <!-- Aquí irán los componentes del juego, admin, etc. -->
   <main>
-    <p>¡Bienvenido! El juego se cargará aquí.</p>
+    <app-game-dashboard [user]="user"></app-game-dashboard>
   </main>
 
 </ng-container>
