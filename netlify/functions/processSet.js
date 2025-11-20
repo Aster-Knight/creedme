@@ -1,14 +1,18 @@
-// netlify/functions/processSet.js
-
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// --- INICIALIZACIÓN DE FIREBASE ---
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64;
-if (!serviceAccountBase64) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
-const serviceAccount = JSON.parse(Buffer.from(serviceAccountBase64, 'base64').toString('utf8'));
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -80,7 +84,7 @@ exports.handler = async function(event) {
                   if (geminiData.candidates && geminiData.candidates[0].content && geminiData.candidates[0].content.parts[0]) {
                       const text = geminiData.candidates[0].content.parts[0].text;
                       try {
-                          const match = text.match(/{.*}/s); // Extrae cualquier cosa entre { y }
+                          const match = text.match(/{.*}/s); 
                           if (match) {
                               const scoreObj = JSON.parse(match[0]);
                               return { responseId: response.id, score: scoreObj.score || 0 };
@@ -90,21 +94,17 @@ exports.handler = async function(event) {
                       }
                   }
                   console.warn(`No se pudo obtener puntuación para la respuesta ${response.id}`);
-                  return { responseId: response.id, score: 0 }; // Devuelve un score por defecto si algo falla
+                  return { responseId: response.id, score: 0 }; 
               })
               .catch(err => {
                   console.error(`Error en fetch para la respuesta ${response.id}:`, err);
-                  return { responseId: response.id, score: 0 }; // Asegurarse de devolver un objeto en caso de error de red
+                  return { responseId: response.id, score: 0 }; 
               });
       });
 
-      // Ejecutamos todas las llamadas a Gemini EN PARALELO
       const scoredResponses = await Promise.all(scoringPromises);
-
-      // Ordenamos localmente basándonos en la puntuación recibida
       scoredResponses.sort((a, b) => b.score - a.score);
 
-      // Guardamos el ranking final en la base de datos
       const batch = db.batch();
       scoredResponses.forEach((item, index) => {
         const responseRef = db.collection('responses').doc(item.responseId);

@@ -1,0 +1,29 @@
+<div *ngIf="gameState$ | async as gameState; else loading">
+  <h2>{{ gameState.setName }}</h2>
+  <div class="questions-grid">
+    <div *ngFor="let q of gameState.questions" 
+         class="question-card" 
+         [ngClass]="{
+           'answered': q.hasResponded,
+           'group-1': q.order <= 3,
+           'group-2': q.order > 3 && q.order <= 6,
+           'group-3': q.order > 6
+         }"
+         (click)="openModal(q)">
+      <h4>Pregunta #{{ q.order }}</h4>
+      <p>{{ q.hasResponded ? 'Ya has respondido.' : 'Pendiente de respuesta.' }}</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #loading>
+  <div class="loading-spinner">Cargando...</div>
+</ng-template>
+
+<!-- El modal se mostrará aquí si hay una pregunta seleccionada -->
+<app-response-modal 
+  *ngIf="selectedQuestion"
+  [question]="selectedQuestion"
+  [user]="user"
+  (close)="handleModalClose($event)">
+</app-response-modal>

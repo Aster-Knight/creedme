@@ -1,11 +1,15 @@
-# netlify.toml
-
 [build]
+  # Ejecuta el script 'build' que definimos en package.json
+  command = "npm run build"
+
+  # Ruta exacta donde Angular dejará el index.html
+  # Estructura: carpeta_frontend / dist / nombre_proyecto / browser
+  publish = "frontend/dist/creedme-angular/browser"
+
+  # Ruta donde están tus funciones de backend
   functions = "netlify/functions"
 
-# AÑADE ESTE NUEVO BLOQUE
 [functions]
-  # Aumenta el tiempo de espera para funciones específicas
+  # Configuración para evitar timeouts en la función pesada
   [functions."processSet"]
-    # El máximo en el plan gratuito es 26 segundos
     timeout = 26
