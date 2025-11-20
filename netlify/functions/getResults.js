@@ -1,13 +1,18 @@
-// netlify/functions/getResults.js
-
 const admin = require('firebase-admin');
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-if (!serviceAccount) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
 
-// Ahora la siguiente línea funcionará porque 'serviceAccount' sí existe
 if (!admin.apps.length) {
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 }
@@ -48,10 +53,8 @@ exports.handler = async function(event) {
         const responseData = responseDoc.data();
         const questionData = questionsMap.get(responseData.questionId);
         
-        // --- ¡AQUÍ ESTÁ LA LÍNEA CORREGIDA! ---
-        // Añadimos el ID de la pregunta al objeto que devolvemos.
         return {
-          questionId: responseData.questionId, // <--- LA LÍNEA QUE FALTABA
+          questionId: responseData.questionId,
           questionOrder: questionData.order,
           secretAudience: questionData.secretAudience,
           yourRanking: responseData.ranking,

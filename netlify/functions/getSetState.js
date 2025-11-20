@@ -1,26 +1,26 @@
-// netlify/functions/getSetState.js
-
 const admin = require('firebase-admin');
 
-// Decodificamos la clave de servicio desde la variable de entorno de Netlify
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-if (!serviceAccount) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
 
-// Inicializamos la app de Firebase SOLO SI no ha sido inicializada antes.
-// Esto es importante en entornos serverless para evitar errores en ejecuciones "cálidas".
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
 }
-
 const db = admin.firestore();
 
 exports.handler = async function(event) {
-  // Por ahora, pasaremos el ID del usuario en el cuerpo de la petición.
-  // Más adelante, lo haremos más seguro con tokens de autenticación.
   const { userId } = JSON.parse(event.body);
   if (!userId) {
     return { statusCode: 400, body: 'Falta el ID del usuario.' };
@@ -47,21 +47,20 @@ exports.handler = async function(event) {
     const responsesRef = db.collection('responses');
     const userResponsesSnapshot = await responsesRef.where('setId', '==', setId).where('userId', '==', userId).get();
     
-    // Creamos un mapa para buscar fácilmente las respuestas del usuario
     const userResponsesMap = new Map();
     userResponsesSnapshot.forEach(doc => {
       const data = doc.data();
       userResponsesMap.set(data.questionId, data);
     });
 
-    // 4. Combinar la información: añadir el estado y la info de la respuesta a cada pregunta
+    // 4. Combinar la información
     const fullState = questions.map(question => {
       const userResponse = userResponsesMap.get(question.id);
       return {
         questionId: question.id,
         questionText: question.questionText,
         order: question.order,
-        hasResponded: !!userResponse, // true si el usuario ha respondido
+        hasResponded: !!userResponse, 
         responseText: userResponse ? userResponse.responseText : null,
         geminiFeedback: userResponse ? userResponse.geminiFeedback : null,
       };

@@ -1,9 +1,16 @@
-// netlify/functions/getSetDetails.js
 const admin = require('firebase-admin');
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-if (!serviceAccount) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
 
 if (!admin.apps.length) {
@@ -41,13 +48,11 @@ exports.handler = async function(event) {
         const responsesSnapshot = await db.collection('responses').where('setId', '==', setId).get();
         const responses = responsesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        // Obtenemos los IDs de todos los usuarios que participaron en este set
         const userIds = [...new Set(responses.map(r => r.userId))];
         if (userIds.length === 0) {
              return { statusCode: 200, body: JSON.stringify({ set: setDoc.data(), questions, responses: [], users: [] }) };
         }
 
-        // Hacemos una única consulta para obtener los datos de todos esos usuarios
         const usersSnapshot = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', userIds).get();
         const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 

@@ -50,11 +50,8 @@ exports.handler = async function(event) {
 
         const geminiResponse = await response.json();
 
-        // --- LÍNEA CORREGIDA ---
-        // Accedemos correctamente a los arrays usando [0]
         const rawText = geminiResponse.candidates[0].content.parts[0].text;
 
-        // Limpiamos la respuesta de Gemini para quitarle el Markdown
         const cleanedText = rawText
             .replace("```json", "")
             .replace("```", "")

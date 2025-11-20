@@ -1,11 +1,16 @@
-// netlify/functions/getLeaderboards.js
-
 const admin = require('firebase-admin');
 
-// --- INICIALIZACIÓN DE FIREBASE ---
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-if (!serviceAccount) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
 
 if (!admin.apps.length) {
@@ -21,7 +26,7 @@ exports.handler = async function(event) {
       // --- LÓGICA PARA EL RANKING GLOBAL ---
       const usersSnapshot = await db.collection('users')
                                     .orderBy('eloRating', 'desc')
-                                    .limit(100) // Limitamos a los 100 mejores para eficiencia
+                                    .limit(100)
                                     .get();
       const globalLeaderboard = usersSnapshot.docs.map(doc => {
         const { username, eloRating } = doc.data();
@@ -31,11 +36,9 @@ exports.handler = async function(event) {
 
     } else if (type === 'question' && questionId) {
       // --- LÓGICA PARA EL RANKING DE UNA PREGUNTA ---
-      // Paso 1: Obtener todos los usuarios para mapear ID a nombre (eficiente para pocos usuarios)
       const allUsersSnapshot = await db.collection('users').get();
       const usersMap = new Map(allUsersSnapshot.docs.map(doc => [doc.id, doc.data().username]));
 
-      // Paso 2: Obtener todas las respuestas para esa pregunta, ordenadas por el ranking
       const responsesSnapshot = await db.collection('responses')
                                         .where('questionId', '==', questionId)
                                         .orderBy('ranking', 'asc')

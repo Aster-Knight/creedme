@@ -5,10 +5,10 @@
   "main": "script.js",
   "scripts": {
     "ng": "ng",
-    "start": "cd frontend && ng serve",
-    "build:angular": "cd frontend && ng build --configuration production",
-    "watch": "cd frontend && ng build --watch --configuration development",
-    "test": "cd frontend && ng test",
+    "start": "cd frontend && npx ng serve",
+    "build:angular": "cd frontend && npx ng build --configuration production",
+    "watch": "cd frontend && npx ng build --watch --configuration development",
+    "test": "cd frontend && npx ng test",
     "build": "npm run build:angular"
   },
   "keywords": [],
@@ -25,7 +25,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
     "firebase": "^11.10.0",
-    "firebase-admin": "^13.5.0",
+    "firebase-admin": "^13.6.0",
     "node-fetch": "^2.7.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

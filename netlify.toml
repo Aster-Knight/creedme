@@ -1,18 +1,15 @@
-# netlify.toml
-
 [build]
-  # Comando a ejecutar desde la raíz del proyecto.
-  # Netlify ejecutará 'npm install' en la raíz, por lo que 'ng' estará disponible.
+  # Ejecuta el script 'build' que definimos en package.json
   command = "npm run build"
-  
-  # Directorio donde Angular deja los archivos compilados.
+
+  # Ruta exacta donde Angular dejará el index.html
+  # Estructura: carpeta_frontend / dist / nombre_proyecto / browser
   publish = "frontend/dist/creedme-angular/browser"
-  
-  # Directorio donde están las funciones serverless.
+
+  # Ruta donde están tus funciones de backend
   functions = "netlify/functions"
 
-# Aumenta el tiempo de espera para funciones específicas
 [functions]
+  # Configuración para evitar timeouts en la función pesada
   [functions."processSet"]
-    # El máximo en el plan gratuito es 26 segundos
     timeout = 26

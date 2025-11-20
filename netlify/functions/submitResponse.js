@@ -1,12 +1,17 @@
-// netlify/functions/submitResponse.js
-
 const admin = require('firebase-admin');
 const fetch = require('node-fetch');
 
-// --- INICIALIZACIÓN DE FIREBASE ---
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-if (!serviceAccount) {
-  throw new Error("La variable de entorno de Firebase no está definida.");
+// --- INICIALIZACIÓN ROBUSTA DE FIREBASE ---
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } else {
+        throw new Error("La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida.");
+    }
+} catch (e) {
+    console.error("Error al parsear la clave de servicio de Firebase:", e);
+    throw new Error("La clave de servicio de Firebase no es un JSON válido.");
 }
 
 if (!admin.apps.length) {
@@ -17,7 +22,6 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// --- LÓGICA PRINCIPAL DE LA FUNCIÓN ---
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Método no permitido' };
@@ -68,9 +72,6 @@ exports.handler = async function(event) {
     const geminiData = await geminiApiResponse.json();
     const feedbackText = geminiData.candidates[0].content.parts[0].text.trim();
 
-    // --- LÍNEA CORREGIDA ---
-    // El método .add() ya devuelve la referencia al documento (DocumentReference),
-    // por lo que llamamos a .update() directamente sobre él, sin .ref.
     await responseDoc.update({ geminiFeedback: feedbackText });
 
     return {
