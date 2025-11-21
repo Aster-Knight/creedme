@@ -15,20 +15,43 @@ header {
     left: 0;
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* La regla clave para la distribución */
     align-items: center;
-    padding: 10px 20px;
+    padding: 8px 20px;
     background-color: #ffffff;
     border-bottom: 1px solid #ddd;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     z-index: 1000;
-    /* Eliminamos el margin y el padding por defecto del body para que la navbar se ajuste bien */
     box-sizing: border-box;
+}
+
+.navbar-left, .navbar-center, .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-center {
+    font-style: italic;
+}
+
+.navbar-logo {
+    height: 35px;
+}
+
+.navbar-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+body.dark-mode .navbar-title {
+    color: #a0aec0;
 }
 
 .main-content {
     /* Añadimos un padding-top para que el contenido no empiece debajo de la navbar */
-    padding-top: 80px; 
+    padding-top: 60px; /* Ajustado a la nueva altura de la navbar */
 }
 
 h1 { color: #2c3e50; }
