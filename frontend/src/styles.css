@@ -194,6 +194,18 @@ app-login input {
     background-color: #f2f2f2;
 }
 
+#admin-panel .admin-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#admin-panel .admin-actions p {
+    margin: 0;
+    font-style: italic;
+}
+
 .instructions-panel {
     background-color: #eaf4fb;
     border-left: 5px solid #3498db;

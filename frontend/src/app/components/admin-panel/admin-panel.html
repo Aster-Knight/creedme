@@ -3,13 +3,15 @@
 
   <div *ngIf="localGameState; else noActiveSet">
     <h4>Set Activo: {{ localGameState.setName }}</h4>
-    <p>
-      Estadísticas: 
-      <strong>{{ getRespondedCount() }}</strong> respuestas enviadas.
-    </p>
-    <button (click)="processSet()" [disabled]="isProcessing">
-      {{ isProcessing ? processingStatus : 'Finalizar Set y Calcular Puntos' }}
-    </button>
+    <div class="admin-actions">
+      <button (click)="processSet()" [disabled]="isProcessing">
+        {{ isProcessing ? processingStatus : 'Finalizar Set y Calcular Puntos' }}
+      </button>
+      <p>
+        Tus respuestas: 
+        <strong>{{ getRespondedCount() }} / 9</strong>
+      </p>
+    </div>
   </div>
   <ng-template #noActiveSet>
     <p><em>No hay ningún set activo para procesar.</em></p>
