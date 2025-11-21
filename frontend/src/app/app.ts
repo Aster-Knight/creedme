@@ -7,6 +7,7 @@ import { GameDashboardComponent } from './components/game-dashboard/game-dashboa
 import { ResultsDashboardComponent } from './components/results-dashboard/results-dashboard';
 import { GlobalLeaderboardComponent } from './components/global-leaderboard/global-leaderboard';
 import { AdminPanelComponent } from './components/admin-panel/admin-panel';
+import { InstructionsPanelComponent } from './components/instructions-panel/instructions-panel'; // Importar
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
@@ -15,12 +16,13 @@ import { BehaviorSubject } from 'rxjs';
   imports: [
     NgIf, 
     AsyncPipe, 
-    NgClass, // Añadir NgClass
+    NgClass,
     LoginComponent, 
     GameDashboardComponent,
     ResultsDashboardComponent,
     GlobalLeaderboardComponent,
-    AdminPanelComponent
+    AdminPanelComponent,
+    InstructionsPanelComponent // Añadir
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
