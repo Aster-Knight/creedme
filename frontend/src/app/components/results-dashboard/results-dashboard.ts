@@ -2,7 +2,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from 'firebase/auth';
 import { ApiService } from '../../services/api';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-results-dashboard',
@@ -17,13 +17,26 @@ export class ResultsDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
   results$!: Observable<any[]>;
 
+  // Propiedades para manejar la vista expandida
+  selectedQuestionId: string | null = null;
+  leaderboard$: Observable<any[]> | null = null;
+
   ngOnInit(): void {
     this.results$ = this.apiService.getResults(this.user.uid);
   }
 
-  // En el futuro, aquí pondremos la lógica para abrir el modal del ranking de una pregunta
-  showQuestionLeaderboard(questionId: string, questionText: string) {
-    console.log(`Mostrar ranking para la pregunta: ${questionId} - ${questionText}`);
-    // Lógica del modal irá aquí
+  toggleQuestionLeaderboard(questionId: string) {
+    // Si se hace clic en la misma pregunta, se cierra la vista
+    if (this.selectedQuestionId === questionId) {
+      this.selectedQuestionId = null;
+      this.leaderboard$ = null;
+    } else {
+      // Si es una nueva pregunta, se abre y se cargan los datos
+      this.selectedQuestionId = questionId;
+      this.leaderboard$ = this.apiService.getLeaderboards({ 
+        type: 'question', 
+        questionId: this.selectedQuestionId 
+      });
+    }
   }
 }

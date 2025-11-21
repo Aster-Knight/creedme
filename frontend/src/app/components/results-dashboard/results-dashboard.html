@@ -4,13 +4,35 @@
     <div id="sets-list">
       <div *ngFor="let set of closedSets" class="set-result-card">
         <h3>{{ set.setName }}</h3>
-        <ul class="result-list">
-          <li *ngFor="let res of set.results" (click)="showQuestionLeaderboard(res.questionId, 'Pregunta #' + res.questionOrder)">
-            <strong>Pregunta #{{ res.questionOrder }}:</strong> Quedaste en el puesto <strong>#{{ res.yourRanking }}</strong>. 
-            <br>
-            <small>El público secreto era: <em>{{ res.secretAudience }}</em> <a>(Ver ranking completo)</a></small>
-          </li>
-        </ul>
+        <div class="result-list">
+          <div class="result-item result-header">
+            <span class="item-question">Pregunta</span>
+            <span class="item-rank">Tu Puesto</span>
+            <span class="item-audience">Público Secreto</span>
+            <span class="item-action"></span>
+          </div>
+          <!-- Usamos ng-container para poder tener dos elementos hermanos (la fila y la vista expandida) dentro del *ngFor -->
+          <ng-container *ngFor="let res of set.results">
+            <div class="result-item" (click)="toggleQuestionLeaderboard(res.questionId)">
+              <span class="item-question">Pregunta #{{ res.questionOrder }}</span>
+              <span class="item-rank">#{{ res.yourRanking }}</span>
+              <span class="item-audience"><em>{{ res.secretAudience }}</em></span>
+              <span class="item-action"><a>{{ selectedQuestionId === res.questionId ? 'Ocultar ranking' : 'Ver ranking completo' }}</a></span>
+            </div>
+            <!-- Vista expandible que solo se muestra si la pregunta está seleccionada -->
+            <div *ngIf="selectedQuestionId === res.questionId" class="expanded-leaderboard">
+              <div *ngIf="leaderboard$ | async as leaderboard; else loading">
+                <ol *ngIf="leaderboard.length > 0; else noResponses">
+                  <li *ngFor="let entry of leaderboard">
+                    <strong>{{ entry.username }}:</strong> "{{ entry.responseText }}"
+                  </li>
+                </ol>
+                <ng-template #noResponses><p>No se encontraron respuestas para esta pregunta.</p></ng-template>
+              </div>
+              <ng-template #loading><p>Cargando ranking...</p></ng-template>
+            </div>
+          </ng-container>
+        </div>
       </div>
     </div>
   </div>

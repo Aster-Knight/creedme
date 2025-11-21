@@ -5,15 +5,53 @@ body {
     color: #333;
     margin: 0;
     padding: 20px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 header {
+    /* Convertimos el header en una navbar fija */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* La regla clave para la distribución */
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+    padding: 8px 20px;
+    background-color: #ffffff;
     border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.navbar-left, .navbar-center, .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-center {
+    font-style: italic;
+}
+
+.navbar-logo {
+    height: 35px;
+}
+
+.navbar-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+body.dark-mode .navbar-title {
+    color: #a0aec0;
+}
+
+.main-content {
+    /* Añadimos un padding-top para que el contenido no empiece debajo de la navbar */
+    padding-top: 60px; /* Ajustado a la nueva altura de la navbar */
 }
 
 h1 { color: #2c3e50; }
@@ -27,11 +65,12 @@ h1 { color: #2c3e50; }
 
 .question-card {
     background-color: #fff;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e0e0e0; /* Borde normal */
+    border-left-width: 5px; /* Grosor solo para el borde izquierdo */
     border-radius: 8px;
     padding: 20px;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s, border-color 0.3s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
@@ -43,9 +82,8 @@ h1 { color: #2c3e50; }
 .question-card h4 { margin: 0 0 10px; }
 .question-card p { margin: 0; font-size: 0.9em; color: #666; }
 
-/* Estilo para tarjetas respondidas */
 .question-card.answered {
-    background-color: #e8f5e9; /* Un verde suave */
+    background-color: #e8f5e9;
     border-color: #a5d6a7;
 }
 
@@ -55,53 +93,7 @@ h1 { color: #2c3e50; }
     font-weight: bold;
 }
 
-/* Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-#modal-textarea {
-    width: 100%;
-    height: 100px;
-    margin: 15px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-#modal-feedback {
-    background-color: #f0f8ff;
-    border-left: 4px solid #4a90e2;
-    padding: 10px;
-    margin-top: 10px;
-    font-style: italic;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
+/* Eliminamos los estilos del modal de aquí, ahora están en response-modal.css */
 
 button {
     padding: 10px 15px;
@@ -111,13 +103,6 @@ button {
     font-weight: bold;
 }
 
-#modal-submit-btn { background-color: #3498db; color: white; }
-#modal-close-btn { background-color: #e0e0e0; }
-
-/* Clases de utilidad */
-.hidden { display: none !important; }
-
-/* Estilos para el componente de Login */
 app-login .login-container {
     text-align: center;
     padding: 40px 20px;
@@ -144,19 +129,6 @@ app-login input {
     border-radius: 4px;
 }
 
-app-login .error-message {
-    color: #e74c3c;
-    margin: 10px 0;
-    font-size: 0.9em;
-}
-
-
-#results-section {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #ddd;
-}
-
 .set-result-card {
     background-color: #fff;
     border-radius: 8px;
@@ -165,78 +137,78 @@ app-login .error-message {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.set-result-card h3 {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-top: 0;
-}
-
-.result-list {
-    list-style: none;
-    padding: 0;
-}
-
-.result-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.result-list li:last-child {
-    border-bottom: none;
-}
-
-#global-leaderboard-section {
-    margin-top: 40px;
+#global-leaderboard-section h2 {
+    margin-bottom: 20px;
+    color: #2c3e50;
 }
 
 #global-leaderboard-table {
     width: 100%;
     border-collapse: collapse;
     background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra más pronunciada */
+    border-radius: 8px; /* Bordes redondeados */
+    overflow: hidden; /* Asegura que los bordes redondeados se apliquen a la tabla */
 }
 
 #global-leaderboard-table th, #global-leaderboard-table td {
-    padding: 12px 15px;
+    padding: 15px 20px; /* Más padding */
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #e0e0e0; /* Borde más suave */
 }
 
 #global-leaderboard-table th {
     background-color: #f8f9fa;
-}
-
-#global-leaderboard-table tr:last-child td {
-    border-bottom: none;
-}
-
-.result-list li {
-    cursor: pointer;
-}
-.result-list li a {
-    color: #3498db;
-    text-decoration: underline;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
     font-size: 0.9em;
 }
 
-.modal-lg {
-    max-width: 800px;
+#global-leaderboard-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* Filas alternas */
 }
 
-#leaderboard-modal-body ol {
-    padding-left: 20px;
-}
-#leaderboard-modal-body li {
-    margin-bottom: 10px;
+#global-leaderboard-table tbody tr:hover {
+    background-color: #e9ecef; /* Efecto hover */
+    transition: background-color 0.2s ease;
 }
 
-.question-card.group-1 { border-left: 5px solid #3498db; } /* Azul */
-.question-card.group-2 { border-left: 5px solid #e67e22; } /* Naranja */
-.question-card.group-3 { border-left: 5px solid #2ecc71; } /* Verde */
+#global-leaderboard-table tbody tr:last-child td {
+    border-bottom: none;
+}
 
-.question-card.answered.group-1 { background-color: #eaf4fb; }
-.question-card.answered.group-2 { background-color: #fbeee4; }
-.question-card.answered.group-3 { background-color: #eafaf1; }
+/* --- ESTILOS DEL MODO OSCURO PARA LA TABLA --- */
+body.dark-mode #global-leaderboard-section h2 {
+    color: #a0aec0;
+}
+
+body.dark-mode #global-leaderboard-table {
+    background-color: #2d3748;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+body.dark-mode #global-leaderboard-table th {
+    background-color: #1a202c;
+    color: #a0aec0;
+    border-color: #4a5568;
+}
+
+body.dark-mode #global-leaderboard-table td {
+    border-color: #4a5568;
+}
+
+body.dark-mode #global-leaderboard-table tbody tr {
+    color: #e2e8f0;
+}
+
+body.dark-mode #global-leaderboard-table tbody tr:nth-child(even) {
+    background-color: #2c3e50;
+}
+
+body.dark-mode #global-leaderboard-table tbody tr:hover {
+    background-color: #3a455a;
+}
 
 .admin-table {
     width: 100%;
@@ -251,4 +223,186 @@ app-login .error-message {
 }
 .admin-table th {
     background-color: #f2f2f2;
+}
+
+#admin-panel .admin-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#admin-panel .admin-actions p {
+    margin: 0;
+    font-style: italic;
+}
+
+.instructions-panel {
+    background-color: #eaf4fb;
+    border-left: 5px solid #3498db;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+body.dark-mode .instructions-panel {
+    background-color: #2c3e50;
+    border-left-color: #5dade2;
+}
+
+/* Estilos para los grupos de preguntas */
+.question-card.group-1 { border-left-color: #3498db; } /* Azul */
+.question-card.group-2 { border-left-color: #e67e22; } /* Naranja */
+.question-card.group-3 { border-left-color: #2ecc71; } /* Verde */
+
+body.dark-mode .question-card.answered.group-1 { background-color: #eaf4fb; }
+body.dark-mode .question-card.answered.group-2 { background-color: #fbeee4; }
+body.dark-mode .question-card.answered.group-3 { background-color: #eafaf1; }
+
+
+/* --- ESTILOS DEL MODO OSCURO --- */
+
+body.dark-mode {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+body.dark-mode header {
+    background-color: #2d3748;
+    border-color: #4a5568;
+}
+
+body.dark-mode h1 {
+    color: #a0aec0;
+}
+
+body.dark-mode header,
+body.dark-mode #results-section,
+body.dark-mode .set-result-card h3 {
+    border-color: #4a5568;
+}
+
+body.dark-mode .question-card,
+body.dark-mode app-login .login-container,
+body.dark-mode .set-result-card,
+body.dark-mode #global-leaderboard-table {
+    background-color: #2d3748;
+    border-top-color: #4a5568;
+    border-right-color: #4a5568;
+    border-bottom-color: #4a5568;
+}
+
+body.dark-mode .question-card p {
+    color: #a0aec0;
+}
+
+body.dark-mode .question-card.answered {
+    background-color: #2c4934;
+    border-color: #38a169;
+}
+
+body.dark-mode .question-card.answered p::before {
+    color: #68d391;
+}
+
+body.dark-mode .modal-content textarea,
+body.dark-mode app-login input {
+    background-color: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
+}
+
+body.dark-mode #global-leaderboard-table th,
+body.dark-mode .admin-table th {
+    background-color: #1a202c;
+}
+
+body.dark-mode #global-leaderboard-table td,
+body.dark-mode .admin-table td {
+    border-color: #4a5568;
+}
+
+/* --- NUEVOS ESTILOS PARA LA TARJETA DE RESULTADOS --- */
+.set-result-card h3 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.result-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background-color: #f9f9f9;
+}
+
+.result-item.result-header {
+    font-weight: bold;
+    color: #666;
+    cursor: default;
+    background-color: transparent !important;
+}
+
+.result-item span {
+    text-align: left;
+}
+
+.item-question { flex: 2; }
+.item-rank { flex: 1; text-align: center !important; }
+.item-audience { flex: 3; }
+.item-action { flex: 1.5; text-align: right !important; }
+.item-action a {
+    color: #3498db;
+    text-decoration: underline;
+    font-size: 0.9em;
+}
+
+body.dark-mode .result-item {
+    border-color: #4a5568;
+}
+
+body.dark-mode .result-item:hover {
+    background-color: #3a455a;
+}
+
+body.dark-mode .result-item.result-header {
+    color: #a0aec0;
+}
+
+.expanded-leaderboard {
+    background-color: #f0f8ff;
+    padding: 20px;
+    text-align: center; /* Centramos el contenido */
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.expanded-leaderboard ol {
+    display: inline-block; /* Permite que el 'ol' se centre como un bloque */
+    text-align: left; /* Alineamos el texto de la lista a la izquierda */
+    padding-left: 20px;
+}
+
+.expanded-leaderboard li {
+    margin-bottom: 10px;
+}
+
+body.dark-mode .expanded-leaderboard {
+    background-color: #1c2a3e;
+    border-color: #4a5568;
 }

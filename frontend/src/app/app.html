@@ -1,25 +1,38 @@
 <ng-container *ngIf="user$ | async as user; else showLogin">
   <header>
-    <h1>Tenedme. Creedme.</h1>
-    <div id="user-info">
-      <span>Jugador: <b>{{ user.email }}</b></span>
+    <div class="navbar-left">
+      <img src="assets/favicon.png" alt="CreedMe Logo" class="navbar-logo">
+      <span class="navbar-title">CreedMe</span>
+    </div>
+    <div class="navbar-center">
+      <span>{{ user.email }}</span>
+    </div>
+    <div class="navbar-right">
       <button (click)="logout()">Cerrar Sesión</button>
+      <button (click)="themeService.toggleTheme()" title="Cambiar tema">
+        <i class="bi" [ngClass]="themeService.getCurrentTheme() === 'light' ? 'bi-moon-fill' : 'bi-sun-fill'"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Panel de Admin (se muestra si isAdmin$ es true) -->
-  <app-admin-panel 
-    *ngIf="isAdmin$ | async"
-    [localGameState]="(gameDashboard.localGameState)">
-  </app-admin-panel>
+  <div class="main-content">
+    <!-- Panel de Admin (se muestra si isAdmin$ es true) -->
+    <app-admin-panel 
+      *ngIf="isAdmin$ | async"
+      [user]="user"
+      [localGameState]="(gameDashboard.localGameState)">
+    </app-admin-panel>
 
-  <main>
-    <!-- Le damos un nombre de referencia #gameDashboard para poder acceder a sus propiedades -->
-    <app-game-dashboard #gameDashboard [user]="user"></app-game-dashboard>
-  </main>
+    <!-- Panel de Instrucciones (se muestra si NO es admin) -->
+    <app-instructions-panel *ngIf="!(isAdmin$ | async)"></app-instructions-panel>
 
-  <app-results-dashboard [user]="user"></app-results-dashboard>
-  <app-global-leaderboard></app-global-leaderboard>
+    <main>
+      <app-game-dashboard #gameDashboard [user]="user"></app-game-dashboard>
+    </main>
+
+    <app-results-dashboard [user]="user"></app-results-dashboard>
+    <app-global-leaderboard></app-global-leaderboard>
+  </div>
 
 </ng-container>
 

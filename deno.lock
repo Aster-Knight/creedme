@@ -22,7 +22,7 @@
         "npm:@angular/platform-browser@^20.3.0",
         "npm:@angular/router@^20.3.0",
         "npm:@types/jasmine@5.1",
-        "npm:firebase-admin@^13.5.0",
+        "npm:firebase-admin@^13.6.0",
         "npm:firebase@^11.10.0",
         "npm:jasmine-core@5.9",
         "npm:karma-chrome-launcher@3.2",

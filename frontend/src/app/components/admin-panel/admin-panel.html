@@ -1,8 +1,54 @@
 <section id="admin-panel">
   <h3>Panel de Administrador</h3>
-  <button (click)="processSet()" [disabled]="isProcessing">
-    {{ isProcessing ? processingStatus : 'Finalizar Set Actual y Calcular Puntos' }}
-  </button>
-  <!-- La tabla de evolución de Elo se podría añadir aquí en el futuro -->
-  <div id="admin-set-details"></div>
+
+  <div *ngIf="localGameState; else noActiveSet">
+    <h4>Set Activo: {{ localGameState.setName }}</h4>
+    <div class="admin-actions">
+      <button (click)="processSet()" [disabled]="isProcessing">
+        {{ isProcessing ? processingStatus : 'Finalizar Set y Calcular Puntos' }}
+      </button>
+      <p>
+        Tus respuestas: 
+        <strong>{{ getRespondedCount() }} / 9</strong>
+      </p>
+    </div>
+  </div>
+  <ng-template #noActiveSet>
+    <p><em>No hay ningún set activo para procesar.</em></p>
+  </ng-template>
+  
+  <hr style="margin: 20px 0;">
+
+  <div id="admin-set-details" *ngIf="closedSetsDetails$ | async as details; else noSets">
+    <div *ngIf="details.length > 0; else noSets">
+      <div *ngFor="let set of details" class="set-details-container">
+        <h4>Evolución de Elo para {{ set.set.setName }}</h4>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Jugador</th>
+              <th *ngFor="let i of [1,2,3,4,5,6,7,8,9]">Preg. #{{i}}</th>
+              <th>Cambio Neto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of set.users">
+              <td>{{ user.username }}</td>
+              <td colspan="9" style="text-align: center; font-style: italic;">
+                {{ (user.eloRating - 500) | eloChange }}
+              </td>
+              <td>
+                <strong>{{ (user.eloRating - 500) | eloChange }}</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noSets>
+    <p style="margin-top: 15px; font-style: italic;">No hay sets cerrados para mostrar detalles de Elo.</p>
+  </ng-template>
 </section>
+

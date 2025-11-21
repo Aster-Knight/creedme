@@ -1,26 +1,49 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService } from '../../services/api';
-import { GameState } from '../../services/api';
+import { ApiService, GameState } from '../../services/api';
+import { User } from 'firebase/auth';
+import { Observable, forkJoin, map } from 'rxjs';
+import { EloChangePipe } from '../../pipes/elo-change-pipe';
 
 @Component({
   selector: 'app-admin-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EloChangePipe],
   templateUrl: './admin-panel.html',
   styleUrls: ['./admin-panel.css']
 })
 export class AdminPanelComponent implements OnInit {
   @Input() localGameState: GameState | undefined;
+  @Input({ required: true }) user!: User;
 
   private apiService = inject(ApiService);
 
   isProcessing = false;
   processingStatus = '';
+  closedSetsDetails$: Observable<any[]> | undefined;
+
+  getRespondedCount(): number {
+    if (!this.localGameState || !this.localGameState.questions) {
+      return 0;
+    }
+    return this.localGameState.questions.filter(q => q.hasResponded).length;
+  }
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Obtenemos los resultados (que son los sets cerrados)
+    this.apiService.getResults(this.user.uid).pipe(
+      map(closedSets => {
+        // Para cada set cerrado, obtenemos sus detalles completos
+        const detailObservables = closedSets.map(set => this.apiService.getSetDetails(set.setId));
+        // forkJoin espera a que todas las llamadas a getSetDetails terminen
+        return forkJoin(detailObservables);
+      })
+    ).subscribe(detailsObservable => {
+      this.closedSetsDetails$ = detailsObservable;
+    });
+  }
 
   async processSet() {
     if (!this.localGameState || !this.localGameState.setId) {
@@ -36,14 +59,12 @@ export class AdminPanelComponent implements OnInit {
     const setId = this.localGameState.setId;
 
     try {
-      // Bucle para procesar cada pregunta
       for (let i = 0; i < 9; i++) {
         this.processingStatus = `Procesando Pregunta ${i + 1}/9...`;
         const url = `/.netlify/functions/processSet?setId=${setId}&questionIndex=${i}`;
         await this.apiService.processSet(url).toPromise();
       }
 
-      // Llamada final para calcular el Elo y crear el nuevo set
       this.processingStatus = 'Calculando Elo y creando nuevo set...';
       const finalUrl = `/.netlify/functions/processSet?setId=${setId}&step=calculate`;
       await this.apiService.processSet(finalUrl).toPromise();
