@@ -1,8 +1,13 @@
 <ng-container *ngIf="user$ | async as user; else showLogin">
   <header>
-    <h1 (click)="themeService.toggleTheme()" style="cursor: pointer;">CreedMe</h1>
-    <div id="user-info">
-      <span>Jugador: <b>{{ user.email }}</b></span>
+    <div class="navbar-left">
+      <img src="assets/favicon.png" alt="CreedMe Logo" class="navbar-logo">
+      <span class="navbar-title">CreedMe</span>
+    </div>
+    <div class="navbar-center">
+      <span>{{ user.email }}</span>
+    </div>
+    <div class="navbar-right">
       <button (click)="logout()">Cerrar Sesión</button>
       <button (click)="themeService.toggleTheme()" title="Cambiar tema">
         <i class="bi" [ngClass]="themeService.getCurrentTheme() === 'light' ? 'bi-moon-fill' : 'bi-sun-fill'"></i>
@@ -22,7 +27,6 @@
     <app-instructions-panel *ngIf="!(isAdmin$ | async)"></app-instructions-panel>
 
     <main>
-      <!-- Le damos un nombre de referencia #gameDashboard para poder acceder a sus propiedades -->
       <app-game-dashboard #gameDashboard [user]="user"></app-game-dashboard>
     </main>
 
