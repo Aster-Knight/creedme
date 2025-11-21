@@ -1,6 +1,6 @@
-# CreedMe - Simulador Político (Versión Angular)
+# CreedMe - Simulador Político (Versión 2.0)
 
-"Tenedme. Creedme." es una aplicación web de simulación política donde los jugadores compiten para crear los discursos más persuasivos para diferentes audiencias, con una puntuación y ranking basados en un sistema Elo.
+"CreedMe." es una aplicación web de simulación política donde los jugadores compiten para crear los discursos más persuasivos para diferentes audiencias, con una puntuación y ranking basados en un sistema Elo.
 
 Esta versión representa la migración completa del prototipo original de JavaScript Vanilla a una robusta Single Page Application (SPA) construida con **Angular**.
 
@@ -20,7 +20,7 @@ Para ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
 2.  **Clonar el Repositorio:**
     ```bash
-    git clone <url-del-repositorio>
+    git clone https://github.com/Aster-Knight/creedme
     cd creedme
     ```
 
@@ -39,7 +39,7 @@ Para ejecutar el proyecto en tu máquina local, sigue estos pasos:
 
     ```
     # Clave de la API de Google Gemini para la IA
-    GEMINI_API_KEY="AIza..."
+    GEMINI_API_KEY="..."
 
     # JSON de la cuenta de servicio de Firebase (todo en una sola línea)
     FIREBASE_SERVICE_ACCOUNT_JSON={"type": "service_account", "project_id": "...", ...}
@@ -86,7 +86,7 @@ A continuación se detalla cómo y dónde se cumplen los requisitos específicos
         -   **Ubicación:** `frontend/src/app/services/` (`AuthService`, `ApiService`, `ThemeService`).
     -   **Pipe Personalizado:** Se creó un pipe para transformar el cambio de Elo en HTML con color.
         -   **Ubicación:** `frontend/src/app/pipes/elo-change-pipe.ts`.
-        -   **Uso:** `frontend/src/app/components/admin-panel/admin-panel.html`.
+        -   **Uso:** `frontend/src/app/componeYnts/admin-panel/admin-panel.html`.
     -   **Pipe Integrado:** Se utiliza `AsyncPipe` extensivamente para suscribirse a Observables directamente desde las plantillas, una práctica recomendada en Angular.
         -   **Uso:** `frontend/src/app/app.html` (con `user$`), `frontend/src/app/components/game-dashboard/game-dashboard.html` (con `gameState$`), entre otros.
 
