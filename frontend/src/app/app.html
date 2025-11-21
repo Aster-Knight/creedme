@@ -4,8 +4,8 @@
     <div id="user-info">
       <span>Jugador: <b>{{ user.email }}</b></span>
       <button (click)="logout()">Cerrar Sesión</button>
-      <button (click)="themeService.toggleTheme()">
-        {{ themeService.getCurrentTheme() === 'light' ? '🌙' : '☀️' }}
+      <button (click)="themeService.toggleTheme()" title="Cambiar tema">
+        <i class="bi" [ngClass]="themeService.getCurrentTheme() === 'light' ? 'bi-moon-fill' : 'bi-sun-fill'"></i>
       </button>
     </div>
   </header>

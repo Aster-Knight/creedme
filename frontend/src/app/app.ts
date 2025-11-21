@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe, NgIf, NgClass } from '@angular/common'; // Añadir NgClass
 import { AuthService } from './services/auth';
-import { ThemeService } from './services/theme'; // Importar
+import { ThemeService } from './services/theme';
 import { LoginComponent } from './components/login/login';
 import { GameDashboardComponent } from './components/game-dashboard/game-dashboard';
 import { ResultsDashboardComponent } from './components/results-dashboard/results-dashboard';
@@ -15,6 +15,7 @@ import { BehaviorSubject } from 'rxjs';
   imports: [
     NgIf, 
     AsyncPipe, 
+    NgClass, // Añadir NgClass
     LoginComponent, 
     GameDashboardComponent,
     ResultsDashboardComponent,
