@@ -1,9 +1,22 @@
 <section id="admin-panel">
   <h3>Panel de Administrador</h3>
-  <button (click)="processSet()" [disabled]="isProcessing">
-    {{ isProcessing ? processingStatus : 'Finalizar Set Actual y Calcular Puntos' }}
-  </button>
+
+  <div *ngIf="localGameState; else noActiveSet">
+    <h4>Set Activo: {{ localGameState.setName }}</h4>
+    <p>
+      Estadísticas: 
+      <strong>{{ getRespondedCount() }}</strong> respuestas enviadas.
+    </p>
+    <button (click)="processSet()" [disabled]="isProcessing">
+      {{ isProcessing ? processingStatus : 'Finalizar Set y Calcular Puntos' }}
+    </button>
+  </div>
+  <ng-template #noActiveSet>
+    <p><em>No hay ningún set activo para procesar.</em></p>
+  </ng-template>
   
+  <hr style="margin: 20px 0;">
+
   <div id="admin-set-details" *ngIf="closedSetsDetails$ | async as details; else noSets">
     <div *ngIf="details.length > 0; else noSets">
       <div *ngFor="let set of details" class="set-details-container">
@@ -36,3 +49,4 @@
     <p style="margin-top: 15px; font-style: italic;">No hay sets cerrados para mostrar detalles de Elo.</p>
   </ng-template>
 </section>
+

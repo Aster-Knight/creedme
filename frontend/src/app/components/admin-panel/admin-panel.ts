@@ -22,6 +22,13 @@ export class AdminPanelComponent implements OnInit {
   processingStatus = '';
   closedSetsDetails$: Observable<any[]> | undefined;
 
+  getRespondedCount(): number {
+    if (!this.localGameState || !this.localGameState.questions) {
+      return 0;
+    }
+    return this.localGameState.questions.filter(q => q.hasResponded).length;
+  }
+
   constructor() {}
 
   ngOnInit(): void {
