@@ -93,39 +93,7 @@ h1 { color: #2c3e50; }
     font-weight: bold;
 }
 
-.modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.modal-content textarea {
-    width: 100%;
-    height: 180px;
-    margin: 15px 0;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    resize: vertical;
-}
-
-#modal-feedback {
-    background-color: #f0f8ff;
-    border-left: 4px solid #4a90e2;
-    padding: 10px;
-    margin-top: 10px;
-    font-style: italic;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
+/* Eliminamos los estilos del modal de aquí, ahora están en response-modal.css */
 
 button {
     padding: 10px 15px;
@@ -253,7 +221,6 @@ body.dark-mode .set-result-card h3 {
 }
 
 body.dark-mode .question-card,
-body.dark-mode .modal-content,
 body.dark-mode app-login .login-container,
 body.dark-mode .set-result-card,
 body.dark-mode #global-leaderboard-table {
@@ -261,7 +228,6 @@ body.dark-mode #global-leaderboard-table {
     border-top-color: #4a5568;
     border-right-color: #4a5568;
     border-bottom-color: #4a5568;
-    /* Al no definir border-left-color, se mantiene el color del grupo */
 }
 
 body.dark-mode .question-card p {
@@ -355,4 +321,26 @@ body.dark-mode .result-item:hover {
 
 body.dark-mode .result-item.result-header {
     color: #a0aec0;
+}
+
+.expanded-leaderboard {
+    background-color: #f0f8ff;
+    padding: 20px;
+    text-align: center; /* Centramos el contenido */
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.expanded-leaderboard ol {
+    display: inline-block; /* Permite que el 'ol' se centre como un bloque */
+    text-align: left; /* Alineamos el texto de la lista a la izquierda */
+    padding-left: 20px;
+}
+
+.expanded-leaderboard li {
+    margin-bottom: 10px;
+}
+
+body.dark-mode .expanded-leaderboard {
+    background-color: #1c2a3e;
+    border-color: #4a5568;
 }
