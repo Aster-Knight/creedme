@@ -1,15 +1,19 @@
 <ng-container *ngIf="user$ | async as user; else showLogin">
   <header>
-    <h1>Tenedme. Creedme.</h1>
+    <h1 (click)="themeService.toggleTheme()" style="cursor: pointer;">Tenedme. Creedme.</h1>
     <div id="user-info">
       <span>Jugador: <b>{{ user.email }}</b></span>
       <button (click)="logout()">Cerrar Sesión</button>
+      <button (click)="themeService.toggleTheme()">
+        {{ themeService.getCurrentTheme() === 'light' ? '🌙' : '☀️' }}
+      </button>
     </div>
   </header>
 
   <!-- Panel de Admin (se muestra si isAdmin$ es true) -->
   <app-admin-panel 
     *ngIf="isAdmin$ | async"
+    [user]="user"
     [localGameState]="(gameDashboard.localGameState)">
   </app-admin-panel>
 

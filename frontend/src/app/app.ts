@@ -1,11 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { AuthService } from './services/auth';
+import { ThemeService } from './services/theme'; // Importar
 import { LoginComponent } from './components/login/login';
 import { GameDashboardComponent } from './components/game-dashboard/game-dashboard';
 import { ResultsDashboardComponent } from './components/results-dashboard/results-dashboard';
 import { GlobalLeaderboardComponent } from './components/global-leaderboard/global-leaderboard';
-import { AdminPanelComponent } from './components/admin-panel/admin-panel'; // Importar
+import { AdminPanelComponent } from './components/admin-panel/admin-panel';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
@@ -18,13 +19,14 @@ import { BehaviorSubject } from 'rxjs';
     GameDashboardComponent,
     ResultsDashboardComponent,
     GlobalLeaderboardComponent,
-    AdminPanelComponent // Añadir
+    AdminPanelComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css'],
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
+  public themeService = inject(ThemeService); // Público para usar en plantilla
   
   user$ = this.authService.authState$;
   isAdmin$ = new BehaviorSubject<boolean>(false);
