@@ -1,0 +1,20 @@
+<div class="modal-overlay">
+  <div class="modal-content modal-lg">
+    <h3>Ranking para: {{ questionText }}</h3>
+    
+    <div class="leaderboard-content" *ngIf="leaderboard$ | async as leaderboard; else loading">
+      <ol *ngIf="leaderboard.length > 0; else noResponses">
+        <li *ngFor="let entry of leaderboard">
+          <strong>{{ entry.username }}:</strong> "{{ entry.responseText }}"
+        </li>
+      </ol>
+      <ng-template #noResponses><p>No se encontraron respuestas para esta pregunta.</p></ng-template>
+    </div>
+
+    <ng-template #loading><p>Cargando ranking...</p></ng-template>
+
+    <div class="modal-actions">
+      <button (click)="closeModal()">Cerrar</button>
+    </div>
+  </div>
+</div>

@@ -4,14 +4,31 @@
     <div id="sets-list">
       <div *ngFor="let set of closedSets" class="set-result-card">
         <h3>{{ set.setName }}</h3>
-        <ul class="result-list">
-          <li *ngFor="let res of set.results" (click)="showQuestionLeaderboard(res.questionId, 'Pregunta #' + res.questionOrder)">
-            <strong>Pregunta #{{ res.questionOrder }}:</strong> Quedaste en el puesto <strong>#{{ res.yourRanking }}</strong>. 
-            <br>
-            <small>El público secreto era: <em>{{ res.secretAudience }}</em> <a>(Ver ranking completo)</a></small>
-          </li>
-        </ul>
+        <div class="result-list">
+          <!-- Cabecera de la "tabla" -->
+          <div class="result-item result-header">
+            <span class="item-question">Pregunta</span>
+            <span class="item-rank">Tu Puesto</span>
+            <span class="item-audience">Público Secreto</span>
+            <span class="item-action"></span>
+          </div>
+          <!-- Filas de resultados -->
+          <div *ngFor="let res of set.results" class="result-item" (click)="showQuestionLeaderboard(res.questionId, 'Pregunta #' + res.questionOrder)">
+            <span class="item-question">Pregunta #{{ res.questionOrder }}</span>
+            <span class="item-rank">#{{ res.yourRanking }}</span>
+            <span class="item-audience"><em>{{ res.secretAudience }}</em></span>
+            <span class="item-action"><a>Ver ranking completo</a></span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- El modal se mostrará aquí si hay una pregunta seleccionada -->
+<app-leaderboard-modal
+  *ngIf="selectedQuestionId && selectedQuestionText"
+  [questionId]="selectedQuestionId"
+  [questionText]="selectedQuestionText"
+  (close)="handleModalClose()">
+</app-leaderboard-modal>

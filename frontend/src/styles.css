@@ -65,7 +65,8 @@ h1 { color: #2c3e50; }
 
 .question-card {
     background-color: #fff;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e0e0e0; /* Borde normal */
+    border-left-width: 5px; /* Grosor solo para el borde izquierdo */
     border-radius: 8px;
     padding: 20px;
     cursor: pointer;
@@ -219,6 +220,15 @@ body.dark-mode .instructions-panel {
     border-left-color: #5dade2;
 }
 
+/* Estilos para los grupos de preguntas */
+.question-card.group-1 { border-left-color: #3498db; } /* Azul */
+.question-card.group-2 { border-left-color: #e67e22; } /* Naranja */
+.question-card.group-3 { border-left-color: #2ecc71; } /* Verde */
+
+body.dark-mode .question-card.answered.group-1 { background-color: #eaf4fb; }
+body.dark-mode .question-card.answered.group-2 { background-color: #fbeee4; }
+body.dark-mode .question-card.answered.group-3 { background-color: #eafaf1; }
+
 
 /* --- ESTILOS DEL MODO OSCURO --- */
 
@@ -248,7 +258,10 @@ body.dark-mode app-login .login-container,
 body.dark-mode .set-result-card,
 body.dark-mode #global-leaderboard-table {
     background-color: #2d3748;
-    border-color: #4a5568;
+    border-top-color: #4a5568;
+    border-right-color: #4a5568;
+    border-bottom-color: #4a5568;
+    /* Al no definir border-left-color, se mantiene el color del grupo */
 }
 
 body.dark-mode .question-card p {
@@ -279,4 +292,67 @@ body.dark-mode .admin-table th {
 body.dark-mode #global-leaderboard-table td,
 body.dark-mode .admin-table td {
     border-color: #4a5568;
+}
+
+/* --- NUEVOS ESTILOS PARA LA TARJETA DE RESULTADOS --- */
+.set-result-card h3 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.result-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 5px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background-color: #f9f9f9;
+}
+
+.result-item.result-header {
+    font-weight: bold;
+    color: #666;
+    cursor: default;
+    background-color: transparent !important;
+}
+
+.result-item span {
+    text-align: left;
+}
+
+.item-question { flex: 2; }
+.item-rank { flex: 1; text-align: center !important; }
+.item-audience { flex: 3; }
+.item-action { flex: 1.5; text-align: right !important; }
+.item-action a {
+    color: #3498db;
+    text-decoration: underline;
+    font-size: 0.9em;
+}
+
+body.dark-mode .result-item {
+    border-color: #4a5568;
+}
+
+body.dark-mode .result-item:hover {
+    background-color: #3a455a;
+}
+
+body.dark-mode .result-item.result-header {
+    color: #a0aec0;
 }
